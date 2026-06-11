@@ -21,7 +21,7 @@
   @keyframes tip { 0%,100% { transform:rotate(0deg); } 50% { transform:rotate(90deg); } }
   @media (orientation: portrait) { #rotate-overlay { display:block; } }
 </style>
-</head>
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>
 <body>
   <div id="unity-container"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
   <div id="loading">
@@ -49,5 +49,5 @@
       document.getElementById("loading").innerHTML = "<h1>Could not load</h1><small>" + message + "</small>";
     });
   </script>
-</body>
+<div id="fs-btn" style="position:fixed;right:10px;bottom:10px;z-index:20;color:#fff;background:rgba(0,0,0,.45);border:1px solid #666;border-radius:6px;padding:6px 12px;font:13px sans-serif;">FULL SCREEN</div><script>(function(){var el=document.documentElement;function goFS(){var f=el.requestFullscreen||el.webkitRequestFullscreen;if(f){try{f.call(el);}catch(e){}}window.scrollTo(0,1);}var b=document.getElementById("fs-btn");b.addEventListener("click",function(e){e.stopPropagation();goFS();});document.getElementById("unity-canvas").addEventListener("touchend",function(){goFS();},{once:true});document.addEventListener("fullscreenchange",function(){b.style.display=document.fullscreenElement?"none":"block";});})();</script></body>
 </html>
