@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Surviving Independence — Preview</title>
+<style>
+  html, body { margin:0; padding:0; background:#000; height:100%; overflow:hidden; }
+  #unity-container { position:fixed; inset:0; }
+  #unity-canvas { width:100%; height:100%; display:block; background:#000; }
+  #loading { position:fixed; inset:0; background:#000; color:#cfe3ee; z-index:5;
+             font-family:Georgia,serif; text-align:center; padding-top:38vh; }
+  #loading h1 { font-size:1.4em; letter-spacing:.08em; margin:0 0 .5em; }
+  #loading small { color:#7d97a8; }
+  #bar { width:54%; max-width:420px; height:6px; margin:1.2em auto 0; background:#16242e; border-radius:3px; }
+  #fill { width:0%; height:100%; background:#5fa8d3; border-radius:3px; transition:width .2s; }
+  #rotate-overlay { display:none; position:fixed; inset:0; background:#101418; color:#fff; z-index:10;
+                    font-family:Georgia,serif; text-align:center; padding-top:38vh; font-size:1.2em; }
+  #rotate-overlay .phone { font-size:2.2em; display:block; margin-bottom:.4em;
+                           animation:tip 1.6s ease-in-out infinite; }
+  @keyframes tip { 0%,100% { transform:rotate(0deg); } 50% { transform:rotate(90deg); } }
+  @media (orientation: portrait) { #rotate-overlay { display:block; } }
+</style>
+</head>
+<body>
+  <div id="unity-container"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+  <div id="loading">
+    <h1>SURVIVING&nbsp;INDEPENDENCE</h1>
+    <small>friends &amp; family preview &middot; loading&hellip;</small>
+    <div id="bar"><div id="fill"></div></div>
+  </div>
+  <div id="rotate-overlay"><span class="phone">&#128241;</span>Please rotate your phone sideways</div>
+  <script src="Build/build-webgl.loader.js"></script>
+  <script>
+    createUnityInstance(document.querySelector("#unity-canvas"), {
+      arguments: [],
+      dataUrl: "Build/build-webgl.data.unityweb",
+      frameworkUrl: "Build/build-webgl.framework.js.unityweb",
+      codeUrl: "Build/build-webgl.wasm.unityweb",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "Whitkin",
+      productName: "Surviving Independence",
+      productVersion: "0.1.0",
+    }, function (progress) {
+      document.getElementById("fill").style.width = Math.round(progress * 100) + "%";
+    }).then(function () {
+      document.getElementById("loading").style.display = "none";
+    }).catch(function (message) {
+      document.getElementById("loading").innerHTML = "<h1>Could not load</h1><small>" + message + "</small>";
+    });
+  </script>
+</body>
+</html>
