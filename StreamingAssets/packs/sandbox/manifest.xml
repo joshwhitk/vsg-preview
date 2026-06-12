@@ -1,0 +1,11 @@
+<!-- Proof pack: exercises BOTH pack mechanisms.
+     1. Manifest tuning: endless_mode (no terminal win; the roommate moves in
+        and life continues, sublet active) and show_score=false (ending
+        screens hide the run summary numbers).
+     2. XML override: XML/Settings/jobs.xml replaces Resources/XML/Settings/
+        jobs.xml. Bosses replace lenient bosses after 2 leniencies instead
+        of 6, and a third (meaner) replacement boss row is added. -->
+<manifest name="Sandbox">
+	<description>Endless free-play. No win screen, no score - and bosses run out of patience much faster.</description>
+	<tuning endless_mode="true" show_score="false"/>
+</manifest>

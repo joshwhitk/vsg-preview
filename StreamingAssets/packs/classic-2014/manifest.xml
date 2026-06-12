@@ -1,0 +1,6 @@
+<!-- Proof pack: the original Oct-2014 release exactly as shipped.
+     No XML overrides, no tuning changes - selecting this pack must be
+     indistinguishable from the base game. -->
+<manifest name="Classic 2014">
+	<description>The original 2014 game, untouched. 14 days to find a job and an apartment.</description>
+</manifest>

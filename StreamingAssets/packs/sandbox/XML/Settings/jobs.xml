@@ -1,0 +1,100 @@
+<!-- Sandbox pack override of Resources/XML/Settings/jobs.xml.
+     Changes vs base: leniency_replaced 6 -> 2 (lenient bosses get replaced
+     much sooner) and ONE EXTRA boss row in <replacement> (an always-angry
+     stone-sober martinet). NOTE: extra rows must go in <replacement>, not
+     <bosses> - the 2014 parser indexes <bosses> rows against the fixed
+     6-job table and an extra row there is an index crash. -->
+<settings>
+	<jobs>
+		<job type="warehouse"/>
+		<job type="warehouse"/>
+		<job type="warehouse"/>
+		<job type="landscaper"/>
+		<job type="landscaper"/>
+		<job type="landscaper"/>
+	</jobs>
+	<availability amount="3"/>
+	<!-- Show substance = show alcohol/high  personality delay = days until personality randomization -->
+	<bosses leniency_replaced="2" show_substance="false" personality_delay="1" drug_test="true" drug_test_frequency="7">
+		<boss reliable="true" chance_drunk="0" chance_high="0" personality_base="neutral" personality_high="happy" personality_drunk="angry"/>
+		<boss reliable="true" chance_drunk="0" chance_high="0" personality_base="neutral" personality_high="happy" personality_drunk="angry"/>
+		<boss reliable="false" chance_drunk="25" chance_high="25" personality_base="neutral" personality_high="happy" personality_drunk="happy"/>
+		<boss reliable="false" chance_drunk="25" chance_high="25" personality_base="neutral" personality_high="angry" personality_drunk="angry"/>
+		<boss reliable="false" chance_drunk="0" chance_high="100" personality_base="neutral" personality_high="happy" personality_drunk="happy"/>
+		<boss reliable="false" chance_drunk="100" chance_high="0" personality_base="neutral" personality_high="angry" personality_drunk="angry"/>
+	</bosses>
+	<replacement>
+		<boss reliable="false" chance_drunk="100" chance_high="0" personality_base="angry" personality_high="neutral" personality_drunk="angry"/>
+		<boss reliable="false" chance_drunk="100" chance_high="0" personality_base="angry" personality_high="neutral" personality_drunk="angry"/>
+		<boss reliable="true" chance_drunk="0" chance_high="0" personality_base="angry" personality_high="angry" personality_drunk="angry"/>
+	</replacement>
+	<personality>
+		<angry miss_amount="0" crash_amount="0" miss_strikes="2" crash_strikes="2"/>
+		<neutral miss_amount="3" crash_amount="3" miss_strikes="1" crash_strikes="1" lenient_crash="0" lenient_miss="0"/>
+		<happy miss_amount="3" crash_amount="3" miss_strikes="0" crash_strikes="0" lenient_crash="2" lenient_miss="2" lenient_cash_min="20" lenient_cash_max="40"/>
+	</personality>
+	<wages>
+		<wage low="5.00" high="6.50"/>
+		<wage low="6.50" high="8.00"/>
+		<wage low="8.00" high="9.50"/>
+		<wage low="9.50" high="11.00"/>
+		<wage low="11.00" high="12.50"/>
+		<wage low="12.50" high="14.00"/>
+	</wages>
+	<shifts>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+		<shift min_start="7" max_start="10" min_duration="8" max_duration="10">
+			<day number="1" />
+			<day number="2" />
+			<day number="3" />
+			<day number="4" />
+			<day number="5" />
+			<day number="6" />
+			<day number="7" />
+		</shift>
+	</shifts>
+</settings>
