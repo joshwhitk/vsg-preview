@@ -5,7 +5,10 @@
      2. XML override: XML/Settings/jobs.xml replaces Resources/XML/Settings/
         jobs.xml. Bosses replace lenient bosses after 2 leniencies instead
         of 6, and a third (meaner) replacement boss row is added. -->
-<manifest name="Sandbox">
+<!-- content_flags: regulatory content markers for the FPC compliance
+     channel (parsed + echoed only for now; no enforcement). Sandbox keeps
+     the base boss table's chance_drunk/chance_high rows, hence substance. -->
+<manifest name="Sandbox" content_flags="substance">
 	<description>Endless free-play. No win screen, no score - and bosses run out of patience much faster.</description>
 	<tuning endless_mode="true" show_score="false"/>
 </manifest>
