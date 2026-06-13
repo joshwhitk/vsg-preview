@@ -1,0 +1,1718 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  PLAIN-LANGUAGE HOUSE STYLE  (read before editing card text)
+  ----------------------------------------------------------------------------
+  This dashboard is read by game designers and non-programmers, not engineers.
+  Every card TITLE and DESCRIPTION must be written in clear, everyday English
+  that a designer can understand at a glance. The real code/file/variable name
+  lives ONLY on the small grey "Code reference" secondary line of each card.
+
+  Rules for the visible TITLE and DESCRIPTION:
+    - No code identifiers, camelCase, snake_case, or .cs/.xml file names in the
+      title or description. Those go on the "tech" (Code reference) line.
+    - Say what the knob DOES for the player, not how it is stored.
+    - Use friendly equivalents:
+        bleed / bleed interval   -> "how often food money is deducted"
+        moneyBleedAmount         -> "food cost per hour"
+        disposition              -> "friendship level (0-100)"
+        convergence              -> "group hangout"
+        tier                     -> "quality level" (apartments: "apartment quality level")
+        scalar / multiplier      -> "how much faster / slower"
+        leniency                 -> "how many chances / warnings"
+        threshold                -> "the point where ... kicks in"
+    - Money: show DOLLARS in the visible value (e.g. "$1.00"); keep the raw
+      cents on the "tech" line (e.g. "raw: 100 cents").
+    - Group title "Content Flags" is shown to designers as
+      "Content Switches (what is shown/hidden)".
+  Data shape per card:
+    name   = plain-language title (designer English)
+    value  = plain-language current value, dollars not cents
+    effect = plain-language description of what it does, ending with an
+             "Effect:" sentence that states the gameplay CONSEQUENCE of
+             changing this knob (the direction / pedagogical role).
+    tech   = code reference: real variable/file name + raw cents (small grey line)
+    source = original file:line reference (kept as-is)
+    tagcat = consequence category, drives the colored inline tag:
+               'diff'  -> green  "Easier->Harder" (a clear difficulty knob;
+                          the Effect sentence names the harder direction)
+               'hint'  -> blue   "Teaching hint" (the DEFAULT itself teaches;
+                          e.g. the 7:00 alarm sits before the 7:00-10:00 shift
+                          start, so it quietly teaches "wake early for work".
+                          Had the alarm defaulted AT/AFTER shift start it would
+                          be a teach-by-failure TRAP. Verified: alarmTime hour=7
+                          vs shift min_start=7/max_start=10 in jobs.xml.)
+               'steer' -> amber  "Steering" (not a difficulty dial; it shapes
+                          behavior or deliberately tests player initiative /
+                          is a red herring)
+               'tbd'   -> grey   "Effect: TBD - check in play" (role genuinely
+                          unclear; do NOT guess a difficulty direction)
+  ============================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VSG Tuning Dashboard</title>
+<style>
+  :root {
+    --bg: #1a2630;
+    --panel: #1e2e3a;
+    --panel2: #243340;
+    --border: #2d4050;
+    --accent: #4a8fa8;
+    --accent2: #2a6;
+    --warn: #e66;
+    --text: #e8eef2;
+    --muted: #7a9ab0;
+    --planned: #e6a820;
+    --impl: #3a9e6a;
+    --tag-josh: #4a8fa8;
+    --tag-nwm: #a86fa8;
+    --tag-both: #8a9e3a;
+    --hover: #2a3e50;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: Georgia, serif;
+    font-size: 15px;
+    line-height: 1.5;
+    padding: 12px;
+  }
+  h1 {
+    font-size: 1.6em;
+    letter-spacing: .07em;
+    color: var(--text);
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    font-size: .9em;
+    margin-bottom: 14px;
+  }
+  /* Filter bar */
+  .filterbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .filter-btn {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 5px 13px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: .85em;
+    transition: all .15s;
+  }
+  .filter-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .filter-btn:hover { background: var(--hover); }
+  /* Export button */
+  .export-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .export-btn {
+    background: var(--panel2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: .85em;
+    transition: all .15s;
+  }
+  .export-btn:hover { background: var(--accent); color: #fff; }
+  /* Group headers */
+  .group {
+    margin-bottom: 24px;
+  }
+  .group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .group-header h2 {
+    font-size: 1.1em;
+    letter-spacing: .08em;
+    color: var(--accent);
+    text-transform: uppercase;
+    flex: 1;
+  }
+  .group-header .group-toggle {
+    color: var(--muted);
+    font-size: .8em;
+  }
+  .group-count {
+    font-size: .78em;
+    color: var(--muted);
+    font-style: italic;
+  }
+  /* Cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    gap: 10px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    transition: border-color .15s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card.hidden { display: none; }
+  .card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 6px;
+    margin-bottom: 5px;
+  }
+  .card-name {
+    font-weight: bold;
+    font-size: .95em;
+    word-break: break-word;
+    flex: 1;
+  }
+  .badges {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+  .badge {
+    font-size: .7em;
+    font-family: sans-serif;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: bold;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+  .badge.impl { background: #1e3e2e; color: var(--impl); border: 1px solid var(--impl); }
+  .badge.planned { background: #3a2e10; color: var(--planned); border: 1px solid var(--planned); }
+  /* Consequence-category tags (what CHANGING the variable does to the player) */
+  .badge.cat-diff  { background: #10301c; color: #4cd07a; border: 1px solid #4cd07a; }   /* green: Easier<->Harder */
+  .badge.cat-hint  { background: #0e2238; color: #5aa8e8; border: 1px solid #5aa8e8; }   /* blue: Teaching hint */
+  .badge.cat-steer { background: #322405; color: #e6a820; border: 1px solid #e6a820; }   /* amber: Steering / red herring */
+  .badge.cat-tbd   { background: #2a2a2a; color: #9aa; border: 1px solid #778; }          /* grey: TBD - check in play */
+  .card-value {
+    font-size: .88em;
+    color: #a8d0e8;
+    margin-bottom: 5px;
+    font-family: monospace;
+  }
+  .card-effect {
+    font-size: .85em;
+    color: var(--muted);
+    margin-bottom: 7px;
+  }
+  .card-tech {
+    font-size: .72em;
+    color: #5a7488;
+    margin-bottom: 5px;
+    font-family: monospace;
+    word-break: break-word;
+  }
+  .card-source {
+    font-size: .75em;
+    color: #4a6070;
+    margin-bottom: 8px;
+    font-style: italic;
+  }
+  /* Obsidian live-save controls */
+  .obsidian-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .obsidian-status {
+    font-size: .8em;
+    font-family: sans-serif;
+    color: var(--muted);
+  }
+  .obsidian-status .ok { color: var(--accent2); }
+  .obsidian-saved {
+    font-size: .8em;
+    font-family: sans-serif;
+    color: var(--impl);
+    min-width: 96px;
+  }
+  .obsidian-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: .8em;
+    font-style: italic;
+    margin-bottom: 14px;
+  }
+  .obsidian-hint code {
+    font-family: monospace;
+    color: #a8d0e8;
+    font-style: normal;
+  }
+  /* Channel tick boxes */
+  .ticks {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .tick-label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: .78em;
+    font-family: sans-serif;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--panel2);
+    transition: all .12s;
+    user-select: none;
+  }
+  .tick-label input { display: none; }
+  .tick-label.checked-josh { border-color: var(--tag-josh); background: #0e2030; color: var(--tag-josh); }
+  .tick-label.checked-nwm  { border-color: var(--tag-nwm);  background: #2a1030; color: var(--tag-nwm); }
+  .tick-label.checked-both { border-color: var(--tag-both); background: #1e2808; color: var(--tag-both); }
+  .tick-label:hover { border-color: var(--accent); }
+  /* Toast */
+  #toast {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--accent);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: .88em;
+    font-family: sans-serif;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  /* Divider line above groups */
+  .group-header { border-top: 1px solid var(--border); padding-top: 10px; }
+  .group:first-child .group-header { border-top: none; }
+  /* Annotations note */
+  .note-note {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    font-size: .84em;
+    color: var(--muted);
+    text-align: center;
+  }
+  @media (max-width: 500px) {
+    .cards { grid-template-columns: 1fr; }
+    h1 { font-size: 1.3em; }
+  }
+</style>
+</head>
+<body>
+
+<h1>VSG Tuning Dashboard</h1>
+<p class="subtitle">Surviving Independence &mdash; every tunable knob, implemented &amp; planned</p>
+
+<div class="note-note">
+  Tick <strong style="color:var(--tag-josh)">JOSH</strong> (public/Steam),
+  <strong style="color:var(--tag-nwm)">NWM</strong> (FosterParentCollege), or
+  <strong style="color:var(--tag-both)">BOTH</strong> for each variable.
+  Annotations auto-save to localStorage and survive reloads.
+</div>
+
+<div class="note-note" style="text-align:left;">
+  <strong>Tag legend &mdash; what CHANGING each knob does to the player:</strong><br>
+  <span class="badge cat-diff">Easier-&gt;Harder</span>
+  a clear difficulty dial; the <em>Effect:</em> line names which way is harder.
+  &nbsp;
+  <span class="badge cat-hint">Teaching hint</span>
+  the <em>default value itself</em> teaches behavior (e.g. a 7am alarm before a 7-10am shift quietly teaches "wake early").
+  &nbsp;
+  <span class="badge cat-steer">Steering</span>
+  not a difficulty knob; it shapes behavior or tests player initiative.
+  &nbsp;
+  <span class="badge cat-tbd">TBD</span>
+  role unclear &mdash; check in play.
+</div>
+
+<div class="filterbar">
+  <button class="filter-btn active" id="f-all"       onclick="setFilter('all')">All</button>
+  <button class="filter-btn"        id="f-impl"      onclick="setFilter('impl')">Implemented</button>
+  <button class="filter-btn"        id="f-planned"   onclick="setFilter('planned')">Planned</button>
+  <button class="filter-btn"        id="f-g0"        onclick="toggleGroup('g0')">Time &amp; Economy</button>
+  <button class="filter-btn"        id="f-g1"        onclick="toggleGroup('g1')">Jobs &amp; Bosses</button>
+  <button class="filter-btn"        id="f-g2"        onclick="toggleGroup('g2')">Apartments</button>
+  <button class="filter-btn"        id="f-g3"        onclick="toggleGroup('g3')">Social &amp; Friendship</button>
+  <button class="filter-btn"        id="f-g4"        onclick="toggleGroup('g4')">Food &amp; Hunger</button>
+  <button class="filter-btn"        id="f-g5"        onclick="toggleGroup('g5')">Difficulty &amp; Modes</button>
+  <button class="filter-btn"        id="f-g6"        onclick="toggleGroup('g6')">Content Switches</button>
+</div>
+
+<div class="export-row">
+  <button class="export-btn" onclick="exportAnnotations()">Export Annotations (JSON)</button>
+  <button class="export-btn" onclick="exportMarkdown()">Export Annotations (Markdown)</button>
+</div>
+
+<div class="obsidian-row">
+  <button class="export-btn" id="obsidian-connect-btn" onclick="connectObsidian()">Connect Obsidian file</button>
+  <span class="obsidian-status" id="obsidian-status">Not connected</span>
+  <span class="obsidian-saved" id="obsidian-saved"></span>
+</div>
+<div class="obsidian-hint" id="obsidian-hint">
+  Live-save: click <strong>Connect Obsidian file</strong>, navigate to
+  <code>C:\Users\Josh\Dropbox\joshs-stuff\vsg</code> and save as
+  <code>Tuning Annotations.md</code>. After that, every tickbox or note change
+  writes the markdown straight to that file.
+</div>
+
+<!-- =========================================================
+     DATA: all cards injected by JS below
+     ========================================================= -->
+<div id="groups-root"></div>
+
+<div id="toast"></div>
+
+<script>
+// =============================================================
+//  DATA
+// =============================================================
+const GROUPS = [
+  {
+    id: 'g0',
+    title: 'Time & Economy',
+    vars: [
+      {
+        id: 'time_multiplier',
+        name: 'How fast the in-game clock runs',
+        impl: true,
+        value: '20 game-seconds pass per real second',
+        effect: 'Sets the speed of the day/night clock. Faster clock means shorter, more pressured play sessions. Effect: Raising this makes the game HARDER - the clock runs faster so every task (getting to work, eating, paying bills) has less real time.',
+        tagcat: 'diff',
+        tech: '_timeMultiplier',
+        source: 'TimeManager.cs:15'
+      },
+      {
+        id: 'money_bleed_amount',
+        name: 'Food cost per hour',
+        impl: true,
+        value: '$1.00 each time',
+        effect: 'The living/food cost that is taken away from the player on a regular timer. Well-fed players pay half. Effect: Raising this makes the game HARDER - more money drains away each tick, so paychecks stretch less far.',
+        tagcat: 'diff',
+        tech: 'moneyBleed amount (raw: 100 cents)',
+        source: 'Settings/settings.xml + TimeManager.cs'
+      },
+      {
+        id: 'money_bleed_freq',
+        name: 'How often food money is deducted',
+        impl: true,
+        value: 'Every 60 game-minutes',
+        effect: 'How often the living/food cost is charged. More often means more money pressure. Effect: Charging MORE often (a smaller number) makes the game HARDER - money bleeds away in tighter intervals.',
+        tagcat: 'diff',
+        tech: 'moneyBleed frequency',
+        source: 'Settings/settings.xml + TimeManager.cs'
+      },
+      {
+        id: 'start_time_day',
+        name: 'Day and time the game starts on',
+        impl: true,
+        value: 'Saturday, 8:00 in the morning',
+        effect: 'Which day of the week the game begins. This affects the window when jobs are available. Effect: Steering, not difficulty - starting on Saturday gives the player a low-pressure weekend to learn the ropes before the work week begins.',
+        tagcat: 'steer',
+        tech: 'startTime day (day 6)',
+        source: 'Settings/settings.xml'
+      },
+      {
+        id: 'alarm_time',
+        name: 'Morning alarm time',
+        impl: true,
+        value: '7:00 in the morning',
+        effect: 'When the morning alarm wakes the player. Waking up late risks missing a work shift. Effect: Teaching hint via the DEFAULT. The 7:00 alarm sits at/before the earliest 7:00-10:00 shift start, so the sensible default quietly teaches "wake early for work". Push the default alarm to AT or AFTER the shift start and it becomes a TRAP that teaches by failure (wake late, miss the shift, lose the job).',
+        tagcat: 'hint',
+        tech: 'alarmTime (verified hour=7 vs jobs.xml shift min_start=7/max_start=10)',
+        source: 'Settings/settings.xml'
+      },
+      {
+        id: 'starting_cash',
+        name: 'Money the player starts with',
+        impl: true,
+        value: 'A random amount from $100 to $250',
+        effect: 'How much cash the player has at the start of a new game. Sets how tight money feels early on. Effect: LOWERING this makes the game HARDER - less of a safety net, so the player must earn income sooner.',
+        tagcat: 'diff',
+        tech: 'Starting Cash (raw: random 10000-25000 cents)',
+        source: 'Character.cs:117 (Random.Range 10000-25000 cents)'
+      },
+      {
+        id: 'day_limit_grouphome',
+        name: 'How long the player can stay in the group home',
+        impl: true,
+        value: '14 days',
+        effect: 'Days the player may stay in the group home before it would be game over. Right now this is story-only and is not enforced; the harder mode would enforce it. Effect: SHORTENING this (once enforced) makes the game HARDER - less time to land a job and an apartment before time runs out.',
+        tagcat: 'diff',
+        tech: 'dayLimits grouphome',
+        source: 'Settings/settings.xml'
+      },
+      {
+        id: 'day_limit_apartment',
+        name: 'How long housing help lasts after moving in',
+        impl: true,
+        value: '7 days',
+        effect: 'Days of subsidized (helped-with) housing after the player moves into an apartment. Effect: SHORTENING this makes the game HARDER - the rent help ends sooner, so the player must be self-sufficient faster.',
+        tagcat: 'diff',
+        tech: 'dayLimits apartment',
+        source: 'Settings/settings.xml'
+      },
+      {
+        id: 'day_limit_notice',
+        name: 'Eviction warning period before game over',
+        impl: true,
+        value: '3 days',
+        effect: 'How many days of eviction warning the player gets before it becomes game over. Effect: FEWER notice days makes the game HARDER - less grace period to scrape together rent before eviction.',
+        tagcat: 'diff',
+        tech: 'dayLimits notice',
+        source: 'Settings/settings.xml'
+      },
+      {
+        id: 'weekly_rhythm',
+        name: 'Weekly bills mode (instead of daily)',
+        impl: true,
+        value: 'Off by default; can be turned on',
+        effect: 'An experimental replay mode that switches rent to a once-a-week rhythm (about 7x the daily amount) instead of charging daily. Effect: Steering - not harder or easier overall, it reshapes the money lesson into managing one big weekly bill instead of small daily ones (budgeting vs. cash-flow).',
+        tagcat: 'steer',
+        tech: 'Weekly-rhythm profile (settings_weekly.xml)',
+        source: 'Settings/settings_weekly.xml'
+      }
+    ]
+  },
+  {
+    id: 'g1',
+    title: 'Jobs & Bosses',
+    vars: [
+      {
+        id: 'availability',
+        name: 'How many jobs the player can hold at once',
+        impl: true,
+        value: 'Up to 3 jobs',
+        effect: 'The most jobs the player can be working at the same time. Effect: Steering - lets the player stack income but risks burnout and scheduling clashes; it shapes strategy rather than setting a difficulty level.',
+        tagcat: 'steer',
+        tech: 'availability amount',
+        source: 'Settings/jobs.xml'
+      },
+      {
+        id: 'leniency_replaced',
+        name: 'How many chances a nice boss gives before being replaced',
+        impl: true,
+        value: '6 chances normally; 2 in Sandbox',
+        effect: 'How many breaks a friendly, easygoing boss gives before being swapped out for a meaner one. Fewer chances means the pressure ramps up faster. Effect: LOWERING this makes the game HARDER - the nice boss is replaced by an angry one sooner.',
+        tagcat: 'diff',
+        tech: 'leniency_replaced',
+        source: 'Settings/jobs.xml + StreamingAssets/packs/sandbox/XML/Settings/jobs.xml'
+      },
+      {
+        id: 'personality_delay',
+        name: 'Delay before a boss mood is set',
+        impl: true,
+        value: '1 day',
+        effect: 'How long before a boss settles into a random mood. This affects when a drunk/high boss starts showing up. Effect: SHORTENING the delay makes the game HARDER - unpredictable drunk/high boss behavior kicks in sooner.',
+        tagcat: 'diff',
+        tech: 'personality_delay',
+        source: 'Settings/jobs.xml'
+      },
+      {
+        id: 'drug_test',
+        name: 'Drug testing turned on',
+        impl: true,
+        value: 'On',
+        effect: 'Whether workplace drug testing happens at all. Effect: Steering / teaching switch - turning it on adds a real-world consequence channel for substance use rather than tuning overall difficulty.',
+        tagcat: 'steer',
+        tech: 'drug_test (enabled)',
+        source: 'Settings/jobs.xml'
+      },
+      {
+        id: 'drug_test_frequency',
+        name: 'How often drug tests happen',
+        impl: true,
+        value: 'Every 7 days',
+        effect: 'Time between required drug tests. More often means stronger consequences for substance use. Effect: Testing MORE often makes the game HARDER for a player who uses substances - less room to slip up between tests.',
+        tagcat: 'diff',
+        tech: 'drug_test_frequency',
+        source: 'Settings/jobs.xml'
+      },
+      {
+        id: 'show_substance',
+        name: 'Show when a boss is drunk or high',
+        impl: true,
+        value: 'Hidden',
+        effect: 'Whether the player can visibly tell that a boss is drunk or high. Effect: Steering - hiding it makes the boss feel arbitrary and unfair (a deliberate teaching choice about powerlessness); showing it lets the player read and adapt.',
+        tagcat: 'steer',
+        tech: 'show_substance',
+        source: 'Settings/jobs.xml'
+      },
+      {
+        id: 'boss_chance_drunk_0',
+        name: 'Chance the reliable bosses show up drunk',
+        impl: true,
+        value: '0% (both reliable bosses)',
+        effect: 'The daily chance that a sober, reliable boss turns up drunk. These two are always 0%. Effect: RAISING these above 0% makes the game HARDER - even the "safe" bosses become unpredictable.',
+        tagcat: 'diff',
+        tech: 'Boss chance_drunk (reliable x2)',
+        source: 'Settings/jobs.xml rows 1-2'
+      },
+      {
+        id: 'boss_chance_drunk_mixed',
+        name: 'Chance the unreliable bosses show up drunk',
+        impl: true,
+        value: '25% / 25% / 0% / 100%',
+        effect: 'The daily chance each of the four unreliable bosses turns up drunk. 100% means that boss is always drunk. Effect: RAISING these chances makes the game HARDER - more days with an impaired, erratic boss to work under.',
+        tagcat: 'diff',
+        tech: 'Boss chance_drunk (unreliable, bosses 3-6)',
+        source: 'Settings/jobs.xml rows 3-6'
+      },
+      {
+        id: 'boss_chance_high_mixed',
+        name: 'Chance the unreliable bosses show up high',
+        impl: true,
+        value: '0% / 25% / 100% / 0%',
+        effect: 'The daily chance each of the four unreliable bosses turns up high. 100% means that boss is always high. Effect: RAISING these chances makes the game HARDER - more days with an impaired, erratic boss to work under.',
+        tagcat: 'diff',
+        tech: 'Boss chance_high (unreliable, bosses 3-6)',
+        source: 'Settings/jobs.xml rows 3-6'
+      },
+      {
+        id: 'angry_miss_amount',
+        name: 'Angry boss: mistakes allowed before a warning',
+        impl: true,
+        value: '0 misses / 0 crashes (none allowed)',
+        effect: 'How many missed or crashed items an angry boss tolerates before giving a warning. Zero means no tolerance at all. Effect: LOWERING tolerance makes the game HARDER - warnings come for the smallest mistake.',
+        tagcat: 'diff',
+        tech: 'angry: miss_amount / crash_amount',
+        source: 'Settings/jobs.xml personality angry'
+      },
+      {
+        id: 'angry_strikes',
+        name: 'Angry boss: warnings before getting fired',
+        impl: true,
+        value: '2 miss warnings / 2 crash warnings',
+        effect: 'How many warnings an angry boss gives before firing the player. Effect: FEWER strikes makes the game HARDER - the player is fired with less room to recover.',
+        tagcat: 'diff',
+        tech: 'angry: miss_strikes / crash_strikes',
+        source: 'Settings/jobs.xml personality angry'
+      },
+      {
+        id: 'neutral_miss_amount',
+        name: 'Average boss: mistakes allowed before a warning',
+        impl: true,
+        value: '3 misses / 3 crashes',
+        effect: 'How many missed or crashed items an average (neutral) boss tolerates before giving a warning. Effect: LOWERING tolerance makes the game HARDER - warnings arrive after fewer mistakes.',
+        tagcat: 'diff',
+        tech: 'neutral: miss_amount / crash_amount',
+        source: 'Settings/jobs.xml personality neutral'
+      },
+      {
+        id: 'neutral_strikes',
+        name: 'Average boss: warnings before getting fired',
+        impl: true,
+        value: '1 miss warning / 1 crash warning',
+        effect: 'How many warnings an average (neutral) boss gives before firing the player. Effect: FEWER strikes makes the game HARDER - less margin before being fired.',
+        tagcat: 'diff',
+        tech: 'neutral: miss_strikes / crash_strikes',
+        source: 'Settings/jobs.xml personality neutral'
+      },
+      {
+        id: 'happy_lenient',
+        name: 'Friendly boss: extra breaks and tips',
+        impl: true,
+        value: '2 extra breaks each; tips $0.20-$0.40',
+        effect: 'A friendly boss gives extra breaks for crashes and misses, and hands out a small cash tip when a break is used. Effect: LOWERING these breaks/tips makes the game HARDER - the friendly boss cushions mistakes less.',
+        tagcat: 'diff',
+        tech: 'happy: lenient_crash / lenient_miss',
+        source: 'Settings/jobs.xml personality happy'
+      },
+      {
+        id: 'replacement_boss',
+        name: 'The meaner bosses that take over',
+        impl: true,
+        value: '2 replacements normally, 3 in Sandbox; all angry and always drunk',
+        effect: 'The pool of mean bosses that replace the friendly ones once those bosses run out of chances. Effect: Adding MORE / meaner replacements makes the game HARDER - the late-game work environment gets nastier.',
+        tagcat: 'diff',
+        tech: 'replacement boss pool (chance_drunk 100%)',
+        source: 'Settings/jobs.xml replacement'
+      },
+      {
+        id: 'wage_tiers',
+        name: 'Starting pay bands (6 levels)',
+        impl: true,
+        value: '$5.00-$6.50, $6.50-$8.00, $8.00-$9.50, $9.50-$11.00, $11.00-$12.50, $12.50-$14.00 per hour',
+        effect: 'The hourly pay ranges a player can be hired into. They start in one band and raises can move them up. Effect: LOWERING the pay bands makes the game HARDER - the same hours of work earn less, tightening the budget.',
+        tagcat: 'diff',
+        tech: 'wage tiers',
+        source: 'Settings/jobs.xml wages'
+      },
+      {
+        id: 'raise_rate',
+        name: 'Pay raise for a clean shift',
+        impl: true,
+        value: '5% raise',
+        effect: 'How much pay goes up after a shift with no new warnings and few crashes. It cannot go past the top of the next pay band. Effect: SMALLER raises make the game HARDER - good performance is rewarded more slowly, so income grows less.',
+        tagcat: 'diff',
+        tech: 'raise rate (* 1.05f per clean shift)',
+        source: 'JobPostWorkEvent.cs:505 (* 1.05f)'
+      },
+      {
+        id: 'shift_hours',
+        name: 'How long a work shift lasts',
+        impl: true,
+        value: '8 to 10 hours; starts between 7:00 and 10:00',
+        effect: 'How long each shift runs and the earliest/latest it can begin. Effect: Teaching hint - the 7:00-10:00 start window is what the morning alarm is measured against; the sensible 7:00 alarm default teaches the player to wake before the earliest shift start. Longer shifts also mean more time at work and less for errands.',
+        tagcat: 'hint',
+        tech: 'shift duration (min_start=7 max_start=10 min_dur=8 max_dur=10)',
+        source: 'Settings/jobs.xml shifts'
+      },
+      {
+        id: 'job_types',
+        name: 'Which jobs the player can be hired for',
+        impl: true,
+        value: '3 warehouse jobs, 3 landscaping jobs',
+        effect: 'The set of jobs that show up in the hiring pool. Effect: Steering / content variety - it sets the flavor and options of work available, not a difficulty level.',
+        tagcat: 'steer',
+        tech: 'job types',
+        source: 'Settings/jobs.xml jobs'
+      },
+      {
+        id: 'planned_1strike',
+        name: 'PLANNED: Angry boss fires after one warning',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A harder mode where an angry boss fires after a single warning instead of two, matching real-world data that most fast-food workers get fired with no warning. Effect: Turning this on makes the game HARDER - one warning becomes terminal.',
+        tagcat: 'diff',
+        tech: 'PLANNED: 1-strike angry boss mode',
+        source: 'Research - Real Entry-Level Bosses.md'
+      },
+      {
+        id: 'planned_zerotol',
+        name: 'PLANNED: Instant-fire (zero tolerance) mode',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'An extreme hard mode where one serious slip-up (being late on a busy day, a single crash) means instant firing, with no warnings at all. Effect: Turning this on makes the game much HARDER - no warnings, one slip ends the job.',
+        tagcat: 'diff',
+        tech: 'PLANNED: zero-tolerance instant-fire mode',
+        source: 'Research - Real Entry-Level Bosses.md'
+      },
+      {
+        id: 'planned_favoritism',
+        name: 'PLANNED: Boss favoritism toward a coworker',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A hard mode where an angry boss has a random favorite coworker who is shielded from one warning, and the player is never the favorite. Shows that unfair treatment is real. Effect: Steering - it teaches that workplaces can be unfair rather than simply dialing difficulty up or down.',
+        tagcat: 'steer',
+        tech: 'PLANNED: favoritism mechanic',
+        source: 'Research - Real Entry-Level Bosses.md'
+      }
+    ]
+  },
+  {
+    id: 'g2',
+    title: 'Apartments',
+    vars: [
+      {
+        id: 'rent_frequency',
+        name: 'How often rent is charged',
+        impl: true,
+        value: 'Daily by default; weekly is an option',
+        effect: 'How often the player pays rent. Daily is the normal setting; weekly is the experimental replay setting. Effect: Steering - it reshapes the budgeting lesson (frequent small bills vs. one large weekly bill) rather than raising overall difficulty.',
+        tagcat: 'steer',
+        tech: 'rent_frequency (1 = daily, 7 = weekly)',
+        source: 'Apartments/apartments.xml'
+      },
+      {
+        id: 'living_cost',
+        name: 'Affordability check at approval',
+        impl: true,
+        value: '$4.00 per day',
+        effect: 'A daily cost-of-living figure added to rent and compared against the player income. If it is too high, the landlord voices concern when approving the lease. Effect: RAISING this makes the game HARDER - the affordability bar to qualify for an apartment goes up.',
+        tagcat: 'diff',
+        tech: 'living_cost threshold (raw: 400 cents/day)',
+        source: 'Apartments/apartments.xml'
+      },
+      {
+        id: 'roomate_search',
+        name: 'Time to find a roommate by searching',
+        impl: true,
+        value: '6 weeks',
+        effect: 'How long it takes to find a roommate by searching, as opposed to asking a friend directly. Effect: Steering - the long search time nudges the player toward building friendships to get a roommate faster, rather than purely a difficulty setting.',
+        tagcat: 'steer',
+        tech: 'roomate_search',
+        source: 'Apartments/apartments.xml'
+      },
+      {
+        id: 'office_hours',
+        name: 'Leasing office open hours',
+        impl: true,
+        value: 'Open 8:00 in the morning, closes 8:00 at night',
+        effect: 'The hours the leasing office is open. Show up after it closes and the player is locked out. Effect: Teaching hint - the open hours teach the player to plan errands around business hours (and around a work shift); a narrower window would teach that lesson more harshly.',
+        tagcat: 'hint',
+        tech: 'apartment office hours',
+        source: 'Apartments/apartments.xml'
+      },
+      {
+        id: 'apt_rents',
+        name: 'Daily rent by apartment quality level (10 levels)',
+        impl: true,
+        value: '$0.15/day (Winking Roach) up to $0.90/day (Evergreen)',
+        effect: 'The rent ladder from cheapest to nicest apartment. Level 1 = $0.15/day, then $0.20, $0.25, $0.30, $0.40, $0.50, $0.60, $0.70, $0.80, $0.90 at level 10. Effect: RAISING the rents makes the game HARDER - housing eats more of each paycheck at every quality level.',
+        tagcat: 'diff',
+        tech: 'apartment rents (raw cents/day: 15/20/25/30/40/50/60/70/80/90)',
+        source: 'Apartments/apartments.xml (rent values in cents/day)'
+      },
+      {
+        id: 'apt_deposits',
+        name: 'Upfront deposit by apartment quality level (10 levels)',
+        impl: true,
+        value: '$0.50 (level 1) up to $7.00 (level 10)',
+        effect: 'The one-time deposit the player must pay upfront, by apartment quality level. Effect: RAISING the deposits makes the game HARDER - a bigger lump sum is needed before the player can move in.',
+        tagcat: 'diff',
+        tech: 'apartment deposits (raw cents: 50/100/200/400/450/500/550/600/650/700)',
+        source: 'Apartments/apartments.xml'
+      },
+      {
+        id: 'planned_rent_increase',
+        name: 'PLANNED: Harder mode rent and deposits +25%',
+        impl: false,
+        value: 'Planned: 25% more',
+        effect: 'A harder-mode option that raises all rents and deposits by 25%, applied as a single setting in a content pack. Effect: Turning this on makes the game HARDER - every housing cost goes up 25%.',
+        tagcat: 'diff',
+        tech: 'PLANNED: Hard Mode rent/deposit +25%',
+        source: 'mockup-hardmode.html'
+      }
+    ]
+  },
+  {
+    id: 'g3',
+    title: 'Social & Friendship',
+    vars: [
+      {
+        id: 'disposition_start',
+        name: 'Starting friendship level',
+        impl: true,
+        value: '50 out of 100 (neutral)',
+        effect: 'Every friend starts out neutral, halfway up the friendship scale of 0 to 100. Effect: LOWERING the starting level makes the game HARDER - the player has more goodwill to earn before friends will help (e.g. become a roommate).',
+        tagcat: 'diff',
+        tech: 'starting disposition',
+        source: 'CharacterRelations.cs:62'
+      },
+      {
+        id: 'disposition_decay',
+        name: 'How much friendship fades each night',
+        impl: true,
+        value: 'Drops 10 a night when above 60; otherwise drifts back toward 50',
+        effect: 'Each night, a friend you have grown close to (above 60) cools off by 10 points. Friendships between 50 and 60, or below 50, drift back toward the neutral middle of 50. Effect: FASTER decay makes the game HARDER - close friendships slip away sooner, so the player must keep investing time to maintain them.',
+        tagcat: 'diff',
+        tech: 'disposition decay (FriendCharacter.cs EndDay)',
+        source: 'FriendCharacter.cs:1304-1327'
+      },
+      {
+        id: 'roommate_min_disposition',
+        name: 'Friendship needed to become a roommate',
+        impl: true,
+        value: 'At least 80 out of 100',
+        effect: 'A friend has to like the player a lot (80 or higher) before agreeing to move in as a roommate. Below that, they politely say no. Effect: RAISING this bar makes the game HARDER - more relationship-building is required before a friend will share rent.',
+        tagcat: 'diff',
+        tech: 'MINIMUM_DISPOSITION (roommate request)',
+        source: 'RequestRoomateEvent.cs:11'
+      },
+      {
+        id: 'party_hours',
+        name: 'How long a hangout needs to last',
+        impl: true,
+        value: '4 hours',
+        effect: 'How long a group hangout has to run before a friend feels satisfied and it counts as a real get-together. Effect: LONGER required hangouts make the game HARDER - more in-game time must be spent socializing, competing with work and errands.',
+        tagcat: 'diff',
+        tech: 'PARTY_HOURS',
+        source: 'FriendCharacter.cs:53'
+      },
+      {
+        id: 'party_cooldown',
+        name: 'Wait before a friend wants to hang out again',
+        impl: true,
+        value: '44 hours',
+        effect: 'How long after a group hangout before a friend is up for another one. Effect: LONGER cooldown makes the game HARDER - friendships can only be topped up so often, so a missed window costs more.',
+        tagcat: 'diff',
+        tech: 'PARTY_HOURS_COOLDOWN',
+        source: 'FriendCharacter.cs:54'
+      },
+      {
+        id: 'char_traits_grouphome',
+        name: 'Personalities of the group-home characters',
+        impl: true,
+        value: '2 dependable, 1 heavy drinker, 1 stoner, 1 messy',
+        effect: 'The fixed mix of personalities for the people in the group home. Each personality shapes how they behave and get along with others. Effect: Steering - this casts the social world (who is reliable, who is a bad influence) and teaches the player to pick friends wisely, rather than setting difficulty.',
+        tagcat: 'steer',
+        tech: 'group home character traits',
+        source: 'Settings/characters.xml grouphome'
+      },
+      {
+        id: 'char_traits_coworkers',
+        name: 'Personalities of the coworker characters',
+        impl: true,
+        value: '2 dependable (one man, one woman), 1 heavy drinker, 1 stoner',
+        effect: 'The fixed mix of personalities for the coworker characters. Effect: Steering - it casts the workplace social world and teaches reading people, rather than setting a difficulty level.',
+        tagcat: 'steer',
+        tech: 'coworker character traits',
+        source: 'Settings/characters.xml coworkers'
+      },
+      {
+        id: 'planned_faster_decay',
+        name: 'PLANNED: Friendships fade faster (harder mode)',
+        impl: false,
+        value: 'Planned: drops 15 a night (currently 10)',
+        effect: 'A harder-mode option where friendships cool off by 15 points a night instead of 10, making relationships harder to keep up. Effect: Turning this on makes the game HARDER - friendships fade 50% faster.',
+        tagcat: 'diff',
+        tech: 'PLANNED: faster friendship decay',
+        source: 'mockup-hardmode.html'
+      },
+      {
+        id: 'planned_favoritism_social',
+        name: 'PLANNED: Punches needed to win a fight (per character)',
+        impl: false,
+        value: 'Planned: 3 punches by default, set per character',
+        effect: 'A planned per-character setting for how many punches it takes before a character gives up in a fight. Came out of 2011 playtest feedback. Effect: TBD - check in play. As a per-character combat tuning value its overall difficulty/teaching role is not yet pinned down.',
+        tagcat: 'tbd',
+        tech: 'PLANNED: knock-out threshold per NPC',
+        source: 'Wishlist.md (2011-12 era concept)'
+      }
+    ]
+  },
+  {
+    id: 'g4',
+    title: 'Food & Hunger',
+    vars: [
+      {
+        id: 'food_max_energy',
+        name: 'Full stomach (maximum energy)',
+        impl: true,
+        value: '100 (full)',
+        effect: 'The top of the hunger meter. The player starts a new game completely full. Effect: LOWERING the maximum makes the game HARDER - the player can store less energy, so they must eat more often.',
+        tagcat: 'diff',
+        tech: 'max_energy',
+        source: 'Food/food.xml settings'
+      },
+      {
+        id: 'food_drain',
+        name: 'How fast the player gets hungry',
+        impl: true,
+        value: '4 points per game-hour',
+        effect: 'How quickly the hunger meter empties. At this rate a full player lasts 25 game-hours before running out. Effect: FASTER drain makes the game HARDER - the player gets hungry sooner and spends more money and time on food.',
+        tagcat: 'diff',
+        tech: 'drain_per_game_hour',
+        source: 'Food/food.xml settings'
+      },
+      {
+        id: 'food_moderate_threshold',
+        name: 'When mild hunger kicks in',
+        impl: true,
+        value: 'At 50 (half empty)',
+        effect: 'The point where mild hunger begins. Below this, the minigame starts to slow down as a penalty. Effect: RAISING this threshold makes the game HARDER - the hunger penalty kicks in earlier, while the meter is still fairly full.',
+        tagcat: 'diff',
+        tech: 'moderate_threshold',
+        source: 'Food/food.xml settings'
+      },
+      {
+        id: 'food_severe_threshold',
+        name: 'When serious hunger kicks in',
+        impl: true,
+        value: 'At 20 (nearly empty)',
+        effect: 'The point where serious hunger begins. Below this, the screen fades to grey. Effect: RAISING this threshold makes the game HARDER - the severe grey-out penalty starts at a higher (less empty) hunger level.',
+        tagcat: 'diff',
+        tech: 'severe_threshold',
+        source: 'Food/food.xml settings'
+      },
+      {
+        id: 'food_minigame_scalar',
+        name: 'How much hunger slows the minigame',
+        impl: true,
+        value: 'Down to 80% speed when hungry, dropping to 60% at empty',
+        effect: 'How much the rail minigame slows down while the player is hungry. A bigger slowdown makes the minigame harder. Effect: A BIGGER slowdown makes the game HARDER - hunger hurts minigame performance more, so eating matters more.',
+        tagcat: 'diff',
+        tech: 'minigame_speed_scalar_moderate (0.80 to 0.60)',
+        source: 'Food/food.xml settings + HungerManager.cs:142'
+      },
+      {
+        id: 'food_grouphome_fridge',
+        name: 'Energy from the group-home fridge',
+        impl: true,
+        value: 'Restores 80 points',
+        effect: 'How much hunger is filled by eating from the group-home fridge, which is always stocked and free before moving out. Effect: LOWERING this makes the game HARDER - the free safety-net food refills less, pushing the player to buy food sooner.',
+        tagcat: 'diff',
+        tech: 'grouphome_fridge_energy',
+        source: 'Food/food.xml settings'
+      },
+      {
+        id: 'vending_granola',
+        name: 'Vending machine: Granola Bar',
+        impl: true,
+        value: '$1.50 / 120 calories / health 35 of 100',
+        effect: 'The priciest calories of the vending options. Vending machines are at work, the subway, and the corner store. Effect: Teaching hint - it is the healthiest vending choice but the worst calories-per-dollar, teaching the real-world money-vs-health trade-off in convenience food.',
+        tagcat: 'hint',
+        tech: 'vending: granola bar',
+        source: 'Food/food.xml vending'
+      },
+      {
+        id: 'vending_chips',
+        name: 'Vending machine: Chips',
+        impl: true,
+        value: '$1.25 / 150 calories / health 20 of 100',
+        effect: 'Cheap junk food: a fair number of calories but a very low health score. Effect: Teaching hint - cheap and filling but unhealthy, reinforcing the lesson that the cheapest filling option is rarely the healthy one.',
+        tagcat: 'hint',
+        tech: 'vending: chips',
+        source: 'Food/food.xml vending'
+      },
+      {
+        id: 'vending_candy',
+        name: 'Vending machine: Candy Bar',
+        impl: true,
+        value: '$1.00 / 200 calories / health 15 of 100',
+        effect: 'The most calories per dollar in the vending machine, but the worst health score. Effect: Teaching hint - the tempting "best value" trap: most calories per dollar yet the worst for health, teaching the player to look past price alone.',
+        tagcat: 'hint',
+        tech: 'vending: candy bar',
+        source: 'Food/food.xml vending'
+      },
+      {
+        id: 'vending_soda',
+        name: 'Vending machine: Soda',
+        impl: true,
+        value: '$1.25 / 80 calories / health 10 of 100',
+        effect: 'The worst deal: few calories and the lowest health score of all. Effect: Teaching hint - a deliberate "red herring" purchase that wastes money on almost no nourishment, teaching players to recognize empty spending.',
+        tagcat: 'hint',
+        tech: 'vending: soda',
+        source: 'Food/food.xml vending'
+      },
+      {
+        id: 'restaurant_burger',
+        name: 'Restaurant: Hamburger and Fries',
+        impl: true,
+        value: '$5.50 / 600 calories / health 40 of 100',
+        effect: 'The classic fast-food meal. Lots of calories but low on health. Effect: Teaching hint - the cheapest restaurant meal fills you up but scores low on health, reinforcing the money-vs-health trade-off.',
+        tagcat: 'hint',
+        tech: 'restaurant: hamburger and fries',
+        source: 'Food/food.xml restaurant'
+      },
+      {
+        id: 'restaurant_club',
+        name: 'Restaurant: Club Sandwich',
+        impl: true,
+        value: '$6.50 / 500 calories / health 55 of 100',
+        effect: 'A mid-range restaurant meal, healthier than the burger. Effect: Teaching hint - a middle option showing that spending a bit more can buy noticeably better health.',
+        tagcat: 'hint',
+        tech: 'restaurant: club sandwich',
+        source: 'Food/food.xml restaurant'
+      },
+      {
+        id: 'restaurant_nachos',
+        name: 'Restaurant: Vegetarian Nachos',
+        impl: true,
+        value: '$6.00 / 450 calories / health 50 of 100',
+        effect: 'A mid-range vegetarian restaurant meal. Effect: Teaching hint - offers variety and a solid health score at a mid price, part of the menu that teaches comparing options.',
+        tagcat: 'hint',
+        tech: 'restaurant: vegetarian nachos',
+        source: 'Food/food.xml restaurant'
+      },
+      {
+        id: 'restaurant_tuna',
+        name: 'Restaurant: Tuna Sandwich and Fruit',
+        impl: true,
+        value: '$7.00 / 480 calories / health 65 of 100',
+        effect: 'The priciest restaurant meal but also the healthiest. The lesson: healthy does not have to mean most expensive. Effect: Teaching hint - the menu is deliberately tuned so the healthiest pick is reasonable, teaching that smart eating is affordable.',
+        tagcat: 'hint',
+        tech: 'restaurant: tuna sandwich and fruit',
+        source: 'Food/food.xml restaurant'
+      },
+      {
+        id: 'grocery_basics',
+        name: 'Groceries: Basics Bundle',
+        impl: true,
+        value: '$12.00 / 2000 calories / health 65 of 100 / 3 meals',
+        effect: 'Stocks the apartment fridge with 3 meals. The best cost-per-meal of any option. Effect: Teaching hint - the best cost-per-meal, teaching that cooking at home and buying groceries beats eating out for the budget.',
+        tagcat: 'hint',
+        tech: 'grocery: basics bundle',
+        source: 'Food/food.xml grocery'
+      },
+      {
+        id: 'grocery_healthy',
+        name: 'Groceries: Healthy Week',
+        impl: true,
+        value: '$22.00 / 4000 calories / health 75 of 100 / 6 meals',
+        effect: 'The healthiest grocery option with the most meals, but the biggest upfront cost. Effect: Teaching hint - the highest upfront cost but best long-run value and health, teaching planning ahead and buying in bulk when cash allows.',
+        tagcat: 'hint',
+        tech: 'grocery: healthy week',
+        source: 'Food/food.xml grocery'
+      },
+      {
+        id: 'grocery_quick',
+        name: 'Groceries: Quick Meals Pack',
+        impl: true,
+        value: '$15.00 / 2500 calories / health 55 of 100 / 4 meals',
+        effect: 'A mid-range grocery bundle that trades some health for convenience. Effect: Teaching hint - the convenience-vs-health middle ground, helping players weigh time, money, and nutrition.',
+        tagcat: 'hint',
+        tech: 'grocery: quick meals pack',
+        source: 'Food/food.xml grocery'
+      },
+      {
+        id: 'planned_food_v2_health',
+        name: 'PLANNED: Home-cooking choices affect health',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A future version where how healthy your home cooking is depends on what you buy. The current version always treats it as medium health. Needs a grocery-aisle screen. Effect: Teaching hint - it would deepen the eat-well lesson by tying health outcomes directly to the player\'s shopping choices.',
+        tagcat: 'hint',
+        tech: 'PLANNED: Food v2 shopping choices',
+        source: 'Design - Food & Cooking.md v2 / Wishlist.md'
+      },
+      {
+        id: 'planned_food_lightshafts',
+        name: 'PLANNED: Beams of light pointing to food when hungry',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A future version where beams of light point toward food when the player is hungry, flashing once hunger is serious (8+ hours). Held back from the first version. Effect: Steering - a guidance/usability cue that points players toward food; it makes survival easier to navigate without changing the numbers.',
+        tagcat: 'steer',
+        tech: 'PLANNED: light shafts when hungry',
+        source: 'Wishlist.md v2 ideas'
+      },
+      {
+        id: 'planned_fridge_stolen',
+        name: 'PLANNED: Bad roommates steal your food',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'Bad roommates and coworkers eat your fridge food; good ones keep it stocked and call you out if you eat theirs. Effect: Steering - it raises the stakes of WHO you live with, teaching that choosing good roommates protects your resources, more than a flat difficulty change.',
+        tagcat: 'steer',
+        tech: 'PLANNED: food stolen by bad roommates',
+        source: 'Wishlist.md Food & Cooking'
+      }
+    ]
+  },
+  {
+    id: 'g5',
+    title: 'Difficulty & Modes',
+    vars: [
+      {
+        id: 'hardmode_deadline',
+        name: 'PLANNED Harder mode: Enforce the group-home deadline',
+        impl: false,
+        value: 'Planned: 14 days, actually enforced',
+        effect: 'Right now the 14-day group-home limit is story-only. The harder mode would actually enforce it, ending the game on day 14. Effect: Turning enforcement on makes the game HARDER - a hard clock to get a job and apartment before day 14.',
+        tagcat: 'diff',
+        tech: 'PLANNED Hard Mode: group-home deadline enforced',
+        source: 'mockup-hardmode.html + Wishlist.md'
+      },
+      {
+        id: 'hardmode_starting_cash',
+        name: 'PLANNED Harder mode: Less starting money',
+        impl: false,
+        value: 'Planned: $60 (normally about $100-$250)',
+        effect: 'The harder mode cuts starting money to $60, taking away most of the early safety net. Effect: Turning this on makes the game HARDER - far less cash cushion, so income must come fast.',
+        tagcat: 'diff',
+        tech: 'PLANNED Hard Mode: starting cash',
+        source: 'mockup-hardmode.html'
+      },
+      {
+        id: 'hardmode_retry',
+        name: 'PLANNED Harder mode: Losing costs you a day',
+        impl: false,
+        value: 'Planned: lose one day when you fail',
+        effect: 'Failing a minigame or getting knocked out costs a full day, where the normal game has no such penalty. Effect: Turning this on makes the game HARDER - mistakes now cost time as well as money.',
+        tagcat: 'diff',
+        tech: 'PLANNED Hard Mode: retry penalty',
+        source: 'mockup-hardmode.html + Design - Food & Cooking.md'
+      },
+      {
+        id: 'hardmode_starvation',
+        name: 'PLANNED Harder mode: Passing out from hunger',
+        impl: false,
+        value: 'Planned: black out and wake up at home',
+        effect: 'Running all the way out of energy makes the player black out and wake up at home, like a knockout, instead of just the grey screen the normal game uses. Effect: Turning this on makes the game HARDER - letting hunger bottom out now costs a lost trip home, not just a dimmed screen.',
+        tagcat: 'diff',
+        tech: 'PLANNED Hard Mode: starvation blackout',
+        source: 'mockup-hardmode.html'
+      },
+      {
+        id: 'sandbox_endless',
+        name: 'Sandbox mode: Never-ending play',
+        impl: true,
+        value: 'On (Sandbox only)',
+        effect: 'There is no win-or-lose ending. A roommate moves in and life just keeps going. Only in the Sandbox pack. Effect: Steering - it removes the win/lose stakes entirely, changing the mode of play (free exploration) rather than tuning difficulty.',
+        tagcat: 'steer',
+        tech: 'Sandbox pack: endless_mode',
+        source: 'StreamingAssets/packs/sandbox/manifest.xml'
+      },
+      {
+        id: 'sandbox_show_score',
+        name: 'Sandbox mode: Hide the end-of-run score',
+        impl: true,
+        value: 'Score hidden (Sandbox only)',
+        effect: 'The ending screens leave out the run summary numbers. Only in the Sandbox pack. Effect: Steering - a presentation choice that de-emphasizes scoring; it shapes tone rather than difficulty.',
+        tagcat: 'steer',
+        tech: 'Sandbox pack: show_score',
+        source: 'StreamingAssets/packs/sandbox/manifest.xml'
+      },
+      {
+        id: 'sandbox_leniency',
+        name: 'Sandbox mode: Bosses lose patience faster',
+        impl: true,
+        value: '2 chances (normally 6)',
+        effect: 'In Sandbox, friendly bosses run out of patience about 3x faster, and an extra meaner replacement boss is added. Effect: This setting makes the game HARDER - the nice boss is replaced about 3x sooner and the replacement pool is nastier.',
+        tagcat: 'diff',
+        tech: 'Sandbox pack: leniency_replaced',
+        source: 'StreamingAssets/packs/sandbox/XML/Settings/jobs.xml'
+      },
+      {
+        id: 'planned_hardmode_pack',
+        name: 'PLANNED: Bundle the whole harder mode into one pack',
+        impl: false,
+        value: 'Planned: a single settings file',
+        effect: 'The full harder mode in one bundle: enforced deadline, less cash, faster-fading friendships, meaner bosses, higher rent and deposits, tougher hunger, and a penalty for failing. Offered on the win screen. Effect: Turning this on makes the game HARDER across the board - it stacks every individual hard-mode knob at once.',
+        tagcat: 'diff',
+        tech: 'PLANNED: Hard Mode as a content pack',
+        source: 'Wishlist.md Hard Mode section + mockup-hardmode.html'
+      },
+      {
+        id: 'planned_mugging_freq',
+        name: 'PLANNED: How often muggings happen',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'An adjustable dial for how often the player gets mugged in the park. More often means more money pressure. Effect: RAISING the frequency makes the game HARDER - random money loss strikes more often.',
+        tagcat: 'diff',
+        tech: 'PLANNED: mugging frequency',
+        source: 'Wishlist.md VSG-as-platform tuning knobs'
+      },
+      {
+        id: 'planned_clock_speed',
+        name: 'PLANNED: Make clock speed an adjustable dial',
+        impl: false,
+        value: 'Planned (the code already exists)',
+        effect: 'Turn the in-game clock speed into an adjustable dial. The code is already there; it just needs to be hooked up to the settings files and content packs. Effect: Steering / enabler - it exposes a knob; once exposed, a faster clock would make the game HARDER, but the dial itself is a flexibility feature.',
+        tagcat: 'steer',
+        tech: 'PLANNED: clock speed knob (_timeMultiplier exists)',
+        source: 'Wishlist.md VSG-as-platform + TimeManager.cs'
+      }
+    ]
+  },
+  {
+    id: 'g6',
+    title: 'Content Switches (what is shown/hidden)',
+    vars: [
+      {
+        id: 'content_flag_substance',
+        name: 'Substance-content label on a pack',
+        impl: true,
+        value: 'Labeled "substance" (Sandbox only)',
+        effect: 'A content label for the FosterParentCollege compliance channel that flags packs containing drunk/high boss behavior. It is read and displayed, but nothing is enforced from it yet. Effect: Steering - a compliance/labeling switch about what content is shown to which audience, not a difficulty knob.',
+        tagcat: 'steer',
+        tech: 'content_flags: substance',
+        source: 'StreamingAssets/packs/sandbox/manifest.xml'
+      },
+      {
+        id: 'classic_no_overrides',
+        name: 'Classic 2014 pack: leaves everything as-is',
+        impl: true,
+        value: 'No changes to any settings',
+        effect: 'Choosing Classic 2014 plays exactly like the original game: the untouched 14-day experience with no tuning changes. Effect: Steering - a preset that selects the baseline experience; it sets which ruleset is active rather than adjusting difficulty itself.',
+        tagcat: 'steer',
+        tech: 'Classic 2014 pack: no overrides',
+        source: 'StreamingAssets/packs/classic-2014/manifest.xml'
+      },
+      {
+        id: 'planned_bad_boss_packs',
+        name: 'PLANNED: Themed bad-boss packs',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'Workplace-safety and HR-training content packs with hand-picked sets of boss personalities. Listed on the wishlist as a platform content idea. Effect: Steering - curated content packs that aim each pack at a specific teaching goal/audience, rather than a single difficulty dial.',
+        tagcat: 'steer',
+        tech: 'PLANNED: bad-boss variety packs',
+        source: 'Wishlist.md VSG-as-platform'
+      },
+      {
+        id: 'planned_worse_drugs',
+        name: 'PLANNED: A harder drug (cocaine)',
+        impl: false,
+        value: 'Planned (needs a content decision)',
+        effect: 'A new illegal drug. Would pair with a police system if an arrest storyline is wanted. The teaching goals and consequences need careful thought first. Effect: TBD - check in play. Whether it lands as a difficulty spike or a teaching/content choice depends on design decisions not yet made.',
+        tagcat: 'tbd',
+        tech: 'PLANNED: worse drugs class (coke)',
+        source: 'Wishlist.md Worse Drugs'
+      },
+      {
+        id: 'planned_drug_consequences',
+        name: 'PLANNED: Adjustable drug consequences',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A dial for how harsh and how visible drug consequences are. The FosterParentCollege channel would be stricter; the public version stays at the default. Effect: Steering - it tunes the teaching message per audience; turning consequences up does also make that path HARDER, but the intent is editorial framing.',
+        tagcat: 'steer',
+        tech: 'PLANNED: drug consequences tunable',
+        source: 'Wishlist.md VSG-as-platform tuning knobs'
+      },
+      {
+        id: 'planned_boss_unfairness',
+        name: 'PLANNED: Adjustable boss unfairness',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A dial for how unfair or abusive bosses are across the whole game, not just the harder mode. A teaching-design choice. Effect: Steering - it shapes the workplace-fairness lesson; cranking it up also makes the game HARDER, but the point is the message about unfair workplaces.',
+        tagcat: 'steer',
+        tech: 'PLANNED: boss unfairness knob',
+        source: 'Wishlist.md VSG-as-platform tuning knobs'
+      },
+      {
+        id: 'planned_food_cost_knob',
+        name: 'PLANNED: Adjustable cost of healthy food',
+        impl: false,
+        value: 'Planned (once the food system is in)',
+        effect: 'A dial for how much more (or less) healthy food costs. Lets each channel tune the money lesson about eating well. Effect: Steering - it tunes the eat-well money lesson; pushing healthy-food cost up also makes the game HARDER, but the intent is shaping the lesson, not raw difficulty.',
+        tagcat: 'steer',
+        tech: 'PLANNED: healthy food cost knob',
+        source: 'Wishlist.md VSG-as-platform tuning knobs'
+      },
+      {
+        id: 'planned_money_sinks',
+        name: 'PLANNED: Adjustable surprise expenses',
+        impl: false,
+        value: 'Planned (not in the game yet)',
+        effect: 'A dial for how often and how heavy surprise money-draining events are (repair bills, medical costs, and the like). Effect: RAISING this makes the game HARDER - more frequent and heavier surprise expenses drain the budget.',
+        tagcat: 'diff',
+        tech: 'PLANNED: money sinks knob',
+        source: 'Wishlist.md VSG-as-platform tuning knobs'
+      }
+    ]
+  }
+];
+
+// =============================================================
+//  STORAGE
+// =============================================================
+const STORAGE_KEY = 'vsg_tuning_ticks_v2';
+
+function loadTicks() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; }
+  catch (e) { return {}; }
+}
+function saveTicks(ticks) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ticks));
+}
+
+let ticks = loadTicks();
+
+function getTickState(id) {
+  return ticks[id] || { josh: false, nwm: false, both: false };
+}
+function setTick(id, channel, value) {
+  if (!ticks[id]) ticks[id] = { josh: false, nwm: false, both: false };
+  ticks[id][channel] = value;
+  saveTicks(ticks);
+}
+
+// =============================================================
+//  RENDER
+// =============================================================
+let currentFilter = 'all';
+let collapsedGroups = {};
+
+function buildCard(v, groupId) {
+  const t = getTickState(v.id);
+  const implClass = v.impl ? 'impl' : 'planned';
+  const implLabel = v.impl ? 'IMPLEMENTED' : 'PLANNED';
+  const valueDisp = v.impl ? v.value : 'PLANNED';
+
+  const cjosh = t.josh ? ' checked-josh' : '';
+  const cnwm  = t.nwm  ? ' checked-nwm'  : '';
+  const cboth = t.both ? ' checked-both' : '';
+
+  // Consequence-category tag (what changing this knob does to the player)
+  const CAT = {
+    diff:  { cls: 'cat-diff',  label: 'Easier-&gt;Harder', title: 'Difficulty dial - the Effect line names which way is harder' },
+    hint:  { cls: 'cat-hint',  label: 'Teaching hint',     title: 'The default value itself teaches behavior' },
+    steer: { cls: 'cat-steer', label: 'Steering',          title: 'Not a difficulty knob - shapes behavior / tests initiative' },
+    tbd:   { cls: 'cat-tbd',   label: 'TBD',               title: 'Role unclear - check in play' }
+  };
+  const cat = CAT[v.tagcat] || CAT.tbd;
+  const catBadge = `<span class="badge ${cat.cls}" title="${cat.title}">${cat.label}</span>`;
+
+  return `<div class="card" id="card-${v.id}" data-impl="${v.impl}" data-group="${groupId}">
+  <div class="card-top">
+    <div class="card-name">${esc(v.name)}</div>
+    <div class="badges"><span class="badge ${implClass}">${implLabel}</span>${catBadge}</div>
+  </div>
+  <div class="card-value">${esc(valueDisp)}</div>
+  <div class="card-effect">${esc(v.effect)}</div>
+  ${v.tech ? `<div class="card-tech">Code reference: ${esc(v.tech)}</div>` : ''}
+  <div class="card-source">Source: ${esc(v.source)}</div>
+  <div class="ticks">
+    <label class="tick-label${cjosh}" id="tick-josh-${v.id}" title="Josh's channel (public/Steam)">
+      <input type="checkbox" ${t.josh ? 'checked' : ''} onchange="tick('${v.id}','josh',this.checked)">
+      JOSH
+    </label>
+    <label class="tick-label${cnwm}" id="tick-nwm-${v.id}" title="NWM / FosterParentCollege channel">
+      <input type="checkbox" ${t.nwm ? 'checked' : ''} onchange="tick('${v.id}','nwm',this.checked)">
+      NWM
+    </label>
+    <label class="tick-label${cboth}" id="tick-both-${v.id}" title="Both channels">
+      <input type="checkbox" ${t.both ? 'checked' : ''} onchange="tick('${v.id}','both',this.checked)">
+      BOTH
+    </label>
+  </div>
+</div>`;
+}
+
+function buildGroups() {
+  const root = document.getElementById('groups-root');
+  root.innerHTML = '';
+  GROUPS.forEach(g => {
+    const total = g.vars.length;
+    const implCount = g.vars.filter(v => v.impl).length;
+    const plannedCount = total - implCount;
+    const div = document.createElement('div');
+    div.className = 'group';
+    div.id = 'group-' + g.id;
+    div.innerHTML = `<div class="group-header" onclick="toggleGroup('${g.id}')">
+      <h2>${esc(g.title)}</h2>
+      <span class="group-count">${implCount} impl / ${plannedCount} planned</span>
+      <span class="group-toggle" id="gt-${g.id}">${collapsedGroups[g.id] ? '&#9654;' : '&#9660;'}</span>
+    </div>
+    <div class="cards" id="cards-${g.id}" style="${collapsedGroups[g.id] ? 'display:none' : ''}">
+      ${g.vars.map(v => buildCard(v, g.id)).join('')}
+    </div>`;
+    root.appendChild(div);
+  });
+  applyFilter();
+}
+
+function applyFilter() {
+  const all = document.querySelectorAll('.card');
+  all.forEach(card => {
+    const isImpl = card.dataset.impl === 'true';
+    const groupId = card.dataset.group;
+    const groupCollapsed = collapsedGroups[groupId];
+    let show = true;
+    if (currentFilter === 'impl' && !isImpl) show = false;
+    if (currentFilter === 'planned' && isImpl) show = false;
+    if (groupCollapsed) show = false;
+    card.classList.toggle('hidden', !show);
+  });
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','impl','planned'].forEach(k => {
+    const btn = document.getElementById('f-' + k);
+    if (btn) btn.classList.toggle('active', k === f);
+  });
+  applyFilter();
+}
+
+function toggleGroup(gid) {
+  collapsedGroups[gid] = !collapsedGroups[gid];
+  const cards = document.getElementById('cards-' + gid);
+  const toggle = document.getElementById('gt-' + gid);
+  if (cards) cards.style.display = collapsedGroups[gid] ? 'none' : '';
+  if (toggle) toggle.innerHTML = collapsedGroups[gid] ? '&#9654;' : '&#9660;';
+  applyFilter();
+}
+
+function tick(id, channel, value) {
+  setTick(id, channel, value);
+  const label = document.getElementById('tick-' + channel + '-' + id);
+  if (label) {
+    label.classList.toggle('checked-' + channel, value);
+  }
+  obsidianScheduleWrite(); // live-write the full markdown to the connected Obsidian file
+}
+
+function esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// =============================================================
+//  EXPORT
+// =============================================================
+function exportAnnotations() {
+  const out = {};
+  GROUPS.forEach(g => {
+    g.vars.forEach(v => {
+      const t = getTickState(v.id);
+      if (t.josh || t.nwm || t.both) {
+        out[v.id] = {
+          name: v.name,
+          group: g.title,
+          impl: v.impl,
+          josh: t.josh,
+          nwm: t.nwm,
+          both: t.both
+        };
+      }
+    });
+  });
+  copyText(JSON.stringify(out, null, 2));
+  showToast('JSON annotations copied to clipboard');
+}
+
+function exportMarkdown() {
+  let md = '# VSG Tuning Annotations\n\n';
+  GROUPS.forEach(g => {
+    const annotated = g.vars.filter(v => {
+      const t = getTickState(v.id);
+      return t.josh || t.nwm || t.both;
+    });
+    if (annotated.length === 0) return;
+    md += '## ' + g.title + '\n\n';
+    annotated.forEach(v => {
+      const t = getTickState(v.id);
+      const channels = [];
+      if (t.josh) channels.push('JOSH');
+      if (t.nwm)  channels.push('NWM');
+      if (t.both) channels.push('BOTH');
+      md += '- **' + v.name + '** [' + channels.join('/') + '] - ' + (v.impl ? 'Implemented' : 'Planned') + '\n';
+      md += '  - Value: ' + v.value + '\n';
+      md += '  - ' + v.effect + '\n\n';
+    });
+  });
+  if (md.trim() === '# VSG Tuning Annotations') {
+    md = '# VSG Tuning Annotations\n\n(No annotations yet - tick JOSH / NWM / BOTH on cards to annotate.)\n';
+  }
+  copyText(md);
+  showToast('Markdown annotations copied to clipboard');
+}
+
+function copyText(txt) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(txt).catch(() => fallbackCopy(txt));
+  } else {
+    fallbackCopy(txt);
+  }
+}
+function fallbackCopy(txt) {
+  const ta = document.createElement('textarea');
+  ta.value = txt;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// =============================================================
+//  OBSIDIAN LIVE-WRITE (File System Access API)
+// =============================================================
+const OBSIDIAN_DB = 'vsg_tuning_obsidian';
+const OBSIDIAN_STORE = 'handles';
+const OBSIDIAN_HANDLE_KEY = 'annotations_file';
+const SUGGESTED_NAME = 'Tuning Annotations.md';
+
+let obsidianHandle = null;       // FileSystemFileHandle once connected
+let obsidianPermVerified = false; // permission re-checked on first interaction
+let obsidianWriteTimer = null;    // debounce timer
+let obsidianWriting = false;      // guard against overlapping writes
+const obsidianSupported = (typeof window !== 'undefined') && (typeof window.showSaveFilePicker === 'function');
+
+// ---- tiny IndexedDB helpers (store the file handle so it survives reloads) ----
+function obsidianDbOpen() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(OBSIDIAN_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(OBSIDIAN_STORE)) {
+        db.createObjectStore(OBSIDIAN_STORE);
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+function obsidianDbPut(key, val) {
+  return obsidianDbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(OBSIDIAN_STORE, 'readwrite');
+    tx.objectStore(OBSIDIAN_STORE).put(val, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  }));
+}
+function obsidianDbGet(key) {
+  return obsidianDbOpen().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(OBSIDIAN_STORE, 'readonly');
+    const req = tx.objectStore(OBSIDIAN_STORE).get(key);
+    req.onsuccess = () => resolve(req.result || null);
+    req.onerror = () => reject(req.error);
+  }));
+}
+
+// ---- build the grouped-by-channel markdown that gets written every change ----
+function buildObsidianMarkdown() {
+  const buckets = { josh: [], nwm: [], both: [], unassigned: [] };
+  GROUPS.forEach(g => {
+    g.vars.forEach(v => {
+      const t = getTickState(v.id);
+      const valueDisp = v.impl ? v.value : 'Planned (not in the game yet)';
+      const entry = '- ' + v.name + ' (value: ' + valueDisp + ') [group: ' + g.title + ']';
+      if (t.both) buckets.both.push(entry);
+      else if (t.josh && t.nwm) { buckets.josh.push(entry); buckets.nwm.push(entry); }
+      else if (t.josh) buckets.josh.push(entry);
+      else if (t.nwm) buckets.nwm.push(entry);
+      else buckets.unassigned.push(entry);
+    });
+  });
+
+  const now = new Date();
+  let md = '# VSG Tuning Annotations\n\n';
+  md += 'generated ' + now.toLocaleString() + '\n\n';
+
+  const section = (heading, list) => {
+    md += '## ' + heading + '\n\n';
+    if (list.length === 0) md += '_(none)_\n\n';
+    else md += list.join('\n') + '\n\n';
+  };
+  section('JOSH (public / Steam)', buckets.josh);
+  section('NWM (FosterParentCollege)', buckets.nwm);
+  section('BOTH', buckets.both);
+  section('Unassigned', buckets.unassigned);
+
+  return md;
+}
+
+// ---- write to the connected file (overwrites / truncates fully) ----
+async function obsidianWriteNow() {
+  if (!obsidianHandle || obsidianWriting) return;
+  obsidianWriting = true;
+  try {
+    if (!obsidianPermVerified) {
+      const ok = await obsidianEnsurePermission();
+      if (!ok) { obsidianWriting = false; return; }
+    }
+    const writable = await obsidianHandle.createWritable(); // defaults to truncate
+    await writable.write(buildObsidianMarkdown());
+    await writable.close();
+    obsidianShowSaved();
+  } catch (e) {
+    setObsidianStatus('Save failed: ' + (e && e.message ? e.message : e), false);
+  } finally {
+    obsidianWriting = false;
+  }
+}
+
+function obsidianScheduleWrite() {
+  if (!obsidianHandle) return;
+  if (obsidianWriteTimer) clearTimeout(obsidianWriteTimer);
+  obsidianWriteTimer = setTimeout(obsidianWriteNow, 400); // debounce rapid clicks
+}
+
+async function obsidianEnsurePermission() {
+  if (!obsidianHandle || !obsidianHandle.queryPermission) { obsidianPermVerified = true; return true; }
+  const opts = { mode: 'readwrite' };
+  let perm = await obsidianHandle.queryPermission(opts);
+  if (perm !== 'granted') {
+    perm = await obsidianHandle.requestPermission(opts);
+  }
+  obsidianPermVerified = (perm === 'granted');
+  return obsidianPermVerified;
+}
+
+// ---- button click: pick the file (must be inside a user gesture) ----
+async function connectObsidian() {
+  if (!obsidianSupported) return;
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: SUGGESTED_NAME,
+      types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md'] } }]
+    });
+    obsidianHandle = handle;
+    obsidianPermVerified = true; // picking grants readwrite for this session
+    await obsidianDbPut(OBSIDIAN_HANDLE_KEY, handle);
+    setObsidianStatus('Connected: ' + handle.name, true);
+    await obsidianWriteNow(); // write the current state immediately
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user cancelled the picker
+    setObsidianStatus('Connect failed: ' + (e && e.message ? e.message : e), false);
+  }
+}
+
+function setObsidianStatus(text, ok) {
+  const el = document.getElementById('obsidian-status');
+  if (!el) return;
+  el.textContent = text;
+  el.classList.toggle('ok', !!ok);
+}
+function obsidianShowSaved() {
+  const el = document.getElementById('obsidian-saved');
+  if (!el) return;
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  el.textContent = 'saved ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+
+// ---- restore a previously-connected handle on page load ----
+async function obsidianInit() {
+  if (!obsidianSupported) {
+    // Graceful fallback for Firefox / Safari: hide the connect UI, keep clipboard export.
+    const btn = document.getElementById('obsidian-connect-btn');
+    const hint = document.getElementById('obsidian-hint');
+    const status = document.getElementById('obsidian-status');
+    if (btn) btn.style.display = 'none';
+    if (status) status.style.display = 'none';
+    if (hint) hint.innerHTML = 'Live-save to Obsidian needs Chrome or Edge. The clipboard export buttons above still work in this browser.';
+    return;
+  }
+  try {
+    const handle = await obsidianDbGet(OBSIDIAN_HANDLE_KEY);
+    if (handle) {
+      obsidianHandle = handle;
+      obsidianPermVerified = false; // will re-verify on first interaction
+      setObsidianStatus('Connected: ' + handle.name + ' (will re-confirm on first change)', true);
+    }
+  } catch (e) { /* ignore: just start unconnected */ }
+}
+
+// =============================================================
+//  INIT
+// =============================================================
+buildGroups();
+obsidianInit();
+</script>
+</body>
+</html>
