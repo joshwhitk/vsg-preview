@@ -467,26 +467,27 @@
 
   <div class="status-card">
     <h2>Current build</h2>
-    <p class="build-num">Build 75</p>
-    <p class="status-note">The build number now also shows on the game's Title splash (bottom-right corner). Bump this when a new build ships.</p>
+    <p class="build-num">Build 77</p>
+    <p class="status-note">Build 77 is the latest shipped build (OnUp dialog fix, cyan detector, telemetry). Build 78 is prepped (sound-button rename + a test fix) and reaches the live preview on the next WebGL rebuild. The build number shows on the game's Title splash (lower-left).</p>
   </div>
 
   <div class="status-card">
     <h2>Play the live preview</h2>
     <p>
-      <a class="play-btn" href="https://joshwhitk.github.io/vsg-preview/" target="_blank" rel="noopener">Play on phone (landscape)</a>
-      <a class="play-btn" href="https://joshwhitk.github.io/vsg-preview/" target="_blank" rel="noopener">Play on PC (desktop browser)</a>
+      <a class="play-btn" href="https://survivingindependence.com/play/" target="_blank" rel="noopener">Play on phone (landscape)</a>
+      <a class="play-btn" href="https://survivingindependence.com/play/" target="_blank" rel="noopener">Play on PC (desktop browser)</a>
     </p>
-    <p class="status-note">Same WebGL build either way. On a <strong>phone</strong>, hold it in landscape (an on-screen prompt nudges you) and tap the fullscreen button. On <strong>PC</strong>, open in Chrome/Edge and click fullscreen. Autosave + Continue are on. Add <code>?pack=sandbox</code> to the URL to try the endless Sandbox pack.</p>
-    <p class="status-note">Preview repo: <a href="https://github.com/joshwhitk/vsg-preview" target="_blank" rel="noopener">github.com/joshwhitk/vsg-preview</a></p>
+    <p class="status-note">Public play URL is <strong>survivingindependence.com/play/</strong> &mdash; a Cloudflare proxy serves the WebGL build so the github.io address is never exposed. Same build either way. On a <strong>phone</strong>, hold it in landscape (an on-screen prompt nudges you) and tap fullscreen. On <strong>PC</strong>, open in Chrome/Edge and click fullscreen. Autosave + Continue are on. Add <code>?pack=sandbox</code> to try the endless Sandbox pack.</p>
+    <p class="status-note">Landing page: <a href="https://survivingindependence.com" target="_blank" rel="noopener">survivingindependence.com</a> &middot; Preview repo (private): <a href="https://github.com/joshwhitk/vsg-preview" target="_blank" rel="noopener">github.com/joshwhitk/vsg-preview</a></p>
   </div>
 
   <div class="status-card">
     <h2>Status summary</h2>
     <ul class="status-list">
       <li><strong>Playable end to end</strong> &mdash; both win and lose endings reachable.</li>
-      <li><strong>Automated tests:</strong> 31 scripted tests; win + lose playtests green.</li>
-      <li><strong>In the build:</strong> food / hunger, fights (3 scenarios), content packs, save / continue, mowing minigame.</li>
+      <li><strong>Automated tests:</strong> 32 scripted tests; build 77 ran 31/32 (lone red was a timing flake, now fixed &mdash; next run targets 32/32). Win + lose playtests green.</li>
+      <li><strong>Live online:</strong> playable in-browser at survivingindependence.com/play/ (URL-hidden proxy); landing page + credits live.</li>
+      <li><strong>In the build:</strong> food / hunger, fights (3 scenarios), content packs, save / continue, mowing minigame, cyan visual-regression detector, per-session telemetry.</li>
       <li><strong>Two channels:</strong> Josh's full public/Steam version ships first; NWM / FosterParentCollege version second.</li>
       <li><strong>Next:</strong> animation import + demo reel, then Steam publishing prep.</li>
     </ul>
