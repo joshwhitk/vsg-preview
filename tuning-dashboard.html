@@ -359,6 +359,8 @@
   }
   .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
   .tab:hover { background: var(--hover); }
+  .tab-blurb { text-align: center; color: var(--muted); font-size: .85em; font-style: italic; max-width: 720px; margin: -6px auto 16px; }
+  .badge.unwired { background: #2a2f38; color: #9bb0c2; border: 1px solid #7a9ab0; }
   .filter-label { color: var(--muted); font-size: .82em; align-self: center; font-style: italic; }
   /* Status panel */
   .status-card {
@@ -396,9 +398,11 @@
 
 <div class="tabbar">
   <button class="tab active" id="tab-live"    onclick="setTab('live')">Currently Live</button>
+  <button class="tab"        id="tab-unwired" onclick="setTab('unwired')">Built, not yet wired</button>
   <button class="tab"        id="tab-planned" onclick="setTab('planned')">Planned</button>
   <button class="tab"        id="tab-status"  onclick="setTab('status')">Status</button>
 </div>
+<div id="tab-blurb" class="tab-blurb"></div>
 
 <div id="knobs-view">
 
@@ -490,7 +494,7 @@
 
   <div class="status-card">
     <h2>About this dashboard</h2>
-    <p class="status-note">This is a <strong>planning + annotation</strong> tool. The <em>Currently Live</em> tab lists knobs whose VALUES are live in the game; most are not yet adjustable from here. Today only the Sandbox content pack changes settings live (endless mode, hidden score, faster boss patience). Wiring more knobs to be live-tunable is queued. Your JOSH / NWM / BOTH ticks save automatically.</p>
+    <p class="status-note">This is a <strong>planning + annotation</strong> tool. <em>Currently Live</em> = knobs tunable today via XML / content packs (the Sandbox pack does this). <em>Built, not yet wired</em> = values that ARE live in the game but hard-coded in script, so they cannot be changed without code work. <em>Planned</em> = not in the game yet. Dashboard-driven editing is itself still planned; your JOSH / NWM / BOTH ticks save automatically.</p>
   </div>
 
 </div>
@@ -1438,8 +1442,9 @@ let collapsedGroups = {};
 
 function buildCard(v, groupId) {
   const t = getTickState(v.id);
-  const implClass = v.impl ? 'impl' : 'planned';
-  const implLabel = v.impl ? 'IMPLEMENTED' : 'PLANNED';
+  const wired = v.impl && /\.xml|manifest/i.test(v.source);
+  const implClass = !v.impl ? 'planned' : (wired ? 'impl' : 'unwired');
+  const implLabel = !v.impl ? 'PLANNED' : (wired ? 'LIVE' : 'NOT WIRED');
   const valueDisp = v.impl ? v.value : 'PLANNED';
 
   const cjosh = t.josh ? ' checked-josh' : '';
@@ -1456,7 +1461,7 @@ function buildCard(v, groupId) {
   const cat = CAT[v.tagcat] || CAT.tbd;
   const catBadge = `<span class="badge ${cat.cls}" title="${cat.title}">${cat.label}</span>`;
 
-  return `<div class="card" id="card-${v.id}" data-impl="${v.impl}" data-group="${groupId}">
+  return `<div class="card" id="card-${v.id}" data-impl="${v.impl}" data-wired="${wired}" data-group="${groupId}">
   <div class="card-top">
     <div class="card-name">${esc(v.name)}</div>
     <div class="badges"><span class="badge ${implClass}">${implLabel}</span>${catBadge}</div>
@@ -1505,48 +1510,63 @@ function buildGroups() {
   applyFilter();
 }
 
+// A knob is "wired" (live AND tunable today) if its value is read from an XML
+// settings file or a pack manifest -- those can be overridden by a content pack
+// right now. Knobs sourced only from a .cs file are live but HARD-CODED.
+function isWiredVar(v) { return v.impl && /\.xml|manifest/i.test(v.source); }
+
 function applyFilter() {
-  const all = document.querySelectorAll('.card');
-  all.forEach(card => {
-    const isImpl = card.dataset.impl === 'true';
-    const groupId = card.dataset.group;
-    const groupCollapsed = collapsedGroups[groupId];
-    let show = true;
-    if (currentFilter === 'impl' && !isImpl) show = false;
-    if (currentFilter === 'planned' && isImpl) show = false;
-    if (groupCollapsed) show = false;
+  document.querySelectorAll('.card').forEach(card => {
+    const isImpl  = card.dataset.impl  === 'true';
+    const isWired = card.dataset.wired === 'true';
+    let show;
+    if (currentFilter === 'live')         show = isWired;
+    else if (currentFilter === 'unwired') show = isImpl && !isWired;
+    else if (currentFilter === 'planned') show = !isImpl;
+    else show = true;
+    if (collapsedGroups[card.dataset.group]) show = false;
     card.classList.toggle('hidden', !show);
   });
-  // Hide a whole group whose cards don't match the active tab (impl vs planned),
-  // so the Currently-Live / Planned tabs never show an empty group header.
+  // Hide a whole group with no cards for the active tab (no empty headers).
   GROUPS.forEach(g => {
     const groupDiv = document.getElementById('group-' + g.id);
     if (!groupDiv) return;
     const matches = g.vars.filter(v =>
-      currentFilter === 'planned' ? !v.impl :
-      currentFilter === 'impl'    ?  v.impl : true).length;
+      currentFilter === 'live'    ? isWiredVar(v) :
+      currentFilter === 'unwired' ? (v.impl && !isWiredVar(v)) :
+      currentFilter === 'planned' ? !v.impl : true).length;
     groupDiv.style.display = matches > 0 ? '' : 'none';
   });
 }
 
-// Tabs: Currently Live (impl), Planned (not impl), Status (preview + summary).
+// Tabs: Currently Live (live & tunable via XML/pack), Built-not-yet-wired
+// (live but hard-coded in script), Planned (not in the game), Status.
 let currentTab = 'live';
+const TAB_BLURBS = {
+  live:    'These knobs are <strong>live and tunable today</strong> by editing the XML settings or shipping a content pack (the Sandbox pack does exactly this). Dashboard-driven editing is still planned.',
+  unwired: 'These values are <strong>live in the game but hard-coded in script</strong> &mdash; changing them needs code work (the "expose code constants as XML" task). Not adjustable yet.',
+  planned: 'Features and knobs <strong>not in the game yet</strong>.'
+};
 function setTab(tab) {
   currentTab = tab;
-  ['live','planned','status'].forEach(k => {
+  ['live','unwired','planned','status'].forEach(k => {
     const b = document.getElementById('tab-' + k);
     if (b) b.classList.toggle('active', k === tab);
   });
-  const knobs = document.getElementById('knobs-view');
+  const knobs  = document.getElementById('knobs-view');
   const status = document.getElementById('status-panel');
+  const blurb  = document.getElementById('tab-blurb');
   if (tab === 'status') {
     if (knobs)  knobs.style.display = 'none';
     if (status) status.style.display = '';
+    if (blurb)  blurb.style.display = 'none';
     return;
   }
   if (knobs)  knobs.style.display = '';
   if (status) status.style.display = 'none';
-  setFilter(tab === 'planned' ? 'planned' : 'impl');
+  currentFilter = tab;          // 'live' | 'unwired' | 'planned'
+  if (blurb) { blurb.style.display = ''; blurb.innerHTML = TAB_BLURBS[tab] || ''; }
+  applyFilter();
 }
 
 function setFilter(f) {
