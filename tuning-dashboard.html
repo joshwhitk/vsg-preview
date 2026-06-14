@@ -338,12 +338,69 @@
     .cards { grid-template-columns: 1fr; }
     h1 { font-size: 1.3em; }
   }
+  /* Tabs (Currently Live / Planned / Status) */
+  .tabbar {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .tab {
+    background: var(--panel2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 22px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: 1em;
+    transition: all .15s;
+  }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab:hover { background: var(--hover); }
+  .filter-label { color: var(--muted); font-size: .82em; align-self: center; font-style: italic; }
+  /* Status panel */
+  .status-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin: 0 auto 14px;
+    max-width: 680px;
+  }
+  .status-card h2 { font-size: 1.05em; color: var(--accent); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+  .build-num { font-size: 1.9em; font-weight: bold; color: var(--impl); font-family: monospace; }
+  .status-note { font-size: .85em; color: var(--muted); margin-top: 6px; }
+  .status-note code { font-family: monospace; color: #a8d0e8; }
+  .status-list { list-style: none; }
+  .status-list li { padding: 5px 0; border-bottom: 1px solid var(--border); font-size: .9em; }
+  .status-list li:last-child { border-bottom: none; }
+  .play-btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    padding: 9px 18px;
+    border-radius: 6px;
+    margin: 4px 6px 4px 0;
+    font-size: .9em;
+  }
+  .play-btn:hover { background: #5aa8c8; }
 </style>
 </head>
 <body>
 
 <h1>VSG Tuning Dashboard</h1>
 <p class="subtitle">Surviving Independence &mdash; every tunable knob, implemented &amp; planned</p>
+
+<div class="tabbar">
+  <button class="tab active" id="tab-live"    onclick="setTab('live')">Currently Live</button>
+  <button class="tab"        id="tab-planned" onclick="setTab('planned')">Planned</button>
+  <button class="tab"        id="tab-status"  onclick="setTab('status')">Status</button>
+</div>
+
+<div id="knobs-view">
 
 <div class="note-note">
   Tick <strong style="color:var(--tag-josh)">JOSH</strong> (public/Steam),
@@ -368,9 +425,7 @@
 </div>
 
 <div class="filterbar">
-  <button class="filter-btn active" id="f-all"       onclick="setFilter('all')">All</button>
-  <button class="filter-btn"        id="f-impl"      onclick="setFilter('impl')">Implemented</button>
-  <button class="filter-btn"        id="f-planned"   onclick="setFilter('planned')">Planned</button>
+  <span class="filter-label">Collapse / expand groups:</span>
   <button class="filter-btn"        id="f-g0"        onclick="toggleGroup('g0')">Time &amp; Economy</button>
   <button class="filter-btn"        id="f-g1"        onclick="toggleGroup('g1')">Jobs &amp; Bosses</button>
   <button class="filter-btn"        id="f-g2"        onclick="toggleGroup('g2')">Apartments</button>
@@ -401,6 +456,44 @@
      DATA: all cards injected by JS below
      ========================================================= -->
 <div id="groups-root"></div>
+
+</div><!-- /knobs-view -->
+
+<div id="status-panel" style="display:none">
+
+  <div class="status-card">
+    <h2>Current build</h2>
+    <p class="build-num">Build 75</p>
+    <p class="status-note">The build number now also shows on the game's Title splash (bottom-right corner). Bump this when a new build ships.</p>
+  </div>
+
+  <div class="status-card">
+    <h2>Play the live preview</h2>
+    <p>
+      <a class="play-btn" href="https://joshwhitk.github.io/vsg-preview/" target="_blank" rel="noopener">Play on phone (landscape)</a>
+      <a class="play-btn" href="https://joshwhitk.github.io/vsg-preview/" target="_blank" rel="noopener">Play on PC (desktop browser)</a>
+    </p>
+    <p class="status-note">Same WebGL build either way. On a <strong>phone</strong>, hold it in landscape (an on-screen prompt nudges you) and tap the fullscreen button. On <strong>PC</strong>, open in Chrome/Edge and click fullscreen. Autosave + Continue are on. Add <code>?pack=sandbox</code> to the URL to try the endless Sandbox pack.</p>
+    <p class="status-note">Preview repo: <a href="https://github.com/joshwhitk/vsg-preview" target="_blank" rel="noopener">github.com/joshwhitk/vsg-preview</a></p>
+  </div>
+
+  <div class="status-card">
+    <h2>Status summary</h2>
+    <ul class="status-list">
+      <li><strong>Playable end to end</strong> &mdash; both win and lose endings reachable.</li>
+      <li><strong>Automated tests:</strong> 31 scripted tests; win + lose playtests green.</li>
+      <li><strong>In the build:</strong> food / hunger, fights (3 scenarios), content packs, save / continue, mowing minigame.</li>
+      <li><strong>Two channels:</strong> Josh's full public/Steam version ships first; NWM / FosterParentCollege version second.</li>
+      <li><strong>Next:</strong> animation import + demo reel, then Steam publishing prep.</li>
+    </ul>
+  </div>
+
+  <div class="status-card">
+    <h2>About this dashboard</h2>
+    <p class="status-note">This is a <strong>planning + annotation</strong> tool. The <em>Currently Live</em> tab lists knobs whose VALUES are live in the game; most are not yet adjustable from here. Today only the Sandbox content pack changes settings live (endless mode, hidden score, faster boss patience). Wiring more knobs to be live-tunable is queued. Your JOSH / NWM / BOTH ticks save automatically.</p>
+  </div>
+
+</div>
 
 <div id="toast"></div>
 
@@ -1424,6 +1517,36 @@ function applyFilter() {
     if (groupCollapsed) show = false;
     card.classList.toggle('hidden', !show);
   });
+  // Hide a whole group whose cards don't match the active tab (impl vs planned),
+  // so the Currently-Live / Planned tabs never show an empty group header.
+  GROUPS.forEach(g => {
+    const groupDiv = document.getElementById('group-' + g.id);
+    if (!groupDiv) return;
+    const matches = g.vars.filter(v =>
+      currentFilter === 'planned' ? !v.impl :
+      currentFilter === 'impl'    ?  v.impl : true).length;
+    groupDiv.style.display = matches > 0 ? '' : 'none';
+  });
+}
+
+// Tabs: Currently Live (impl), Planned (not impl), Status (preview + summary).
+let currentTab = 'live';
+function setTab(tab) {
+  currentTab = tab;
+  ['live','planned','status'].forEach(k => {
+    const b = document.getElementById('tab-' + k);
+    if (b) b.classList.toggle('active', k === tab);
+  });
+  const knobs = document.getElementById('knobs-view');
+  const status = document.getElementById('status-panel');
+  if (tab === 'status') {
+    if (knobs)  knobs.style.display = 'none';
+    if (status) status.style.display = '';
+    return;
+  }
+  if (knobs)  knobs.style.display = '';
+  if (status) status.style.display = 'none';
+  setFilter(tab === 'planned' ? 'planned' : 'impl');
 }
 
 function setFilter(f) {
@@ -1712,6 +1835,7 @@ async function obsidianInit() {
 //  INIT
 // =============================================================
 buildGroups();
+setTab('live');
 obsidianInit();
 </script>
 </body>
