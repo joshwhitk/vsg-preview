@@ -1,0 +1,13 @@
+<!-- Hard mode (greenlit "enforced-deadline" build, 2026): the group-home deadline
+     (settings.xml dayLimits grouphome, default 14 days) becomes a REAL lose condition.
+     In the base game it is narrative-only (feeds hint text only); here, if the player
+     has not moved into an apartment before the deadline, the game ends -> GameOver_Lose
+     with the "Out of Time" screen (GameOverEvent.Condition.DeadlineExpired). Read by
+     ContentPack.grouphomeDeadlineEnforced and enforced in TimeManager.EndDay().
+     content_flags="substance": hard mode keeps the base game's drug/alcohol content,
+     so it carries the FPC substance marker (omitting it would suppress substances;
+     see ContentPack.SuppressSubstances). -->
+<manifest name="Hard Mode" content_flags="substance">
+	<description>The group-home clock is real. Land a job and your own apartment before time runs out, or it's game over.</description>
+	<tuning grouphome_deadline_enforced="true" starting_cash_min="6000" starting_cash_max="6000"/>
+</manifest>

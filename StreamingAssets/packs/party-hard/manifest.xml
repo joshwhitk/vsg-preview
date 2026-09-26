@@ -1,0 +1,4 @@
+<manifest name="Party Hard" content_flags="substance">
+  <description>Test/diagnostic pack for the #28 party knobs: lower out-of-control threshold (30) and faster gate-crasher arrivals (8s). Substances kept (substance flag) so the knobs are isolated.</description>
+  <tuning party_outofcontrol="30" party_guest_interval="8"/>
+</manifest>

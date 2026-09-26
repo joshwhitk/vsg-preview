@@ -1,0 +1,15 @@
+<characters>
+	<grouphome>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="male"/>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="female"/>
+		<character reliable="false" alcoholic="true" stoner="false" dirty="false"/>
+		<character reliable="false" alcoholic="false" stoner="true" dirty="false"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="true"/>
+	</grouphome>
+	<coworkers>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="male"/>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="female"/>
+		<character reliable="false" alcoholic="true" stoner="true" dirty="false"/>
+		<character reliable="false" alcoholic="true" stoner="true" dirty="false"/>
+	</coworkers>
+</characters>

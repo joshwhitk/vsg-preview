@@ -1,0 +1,3 @@
+XML/Dialog/Events/suggest.xml
+XML/Settings/characters.xml
+XML/Settings/jobs.xml

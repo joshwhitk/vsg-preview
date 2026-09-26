@@ -1,6 +1,9 @@
 <!-- Proof pack: the original Oct-2014 release exactly as shipped.
      No XML overrides, no tuning changes - selecting this pack must be
-     indistinguishable from the base game. -->
-<manifest name="Classic 2014">
+     indistinguishable from the base game.
+     content_flags="substance": the 2014 game contains drug/alcohol content, so it
+     carries the FPC substance marker (this is what keeps substances ON; an active
+     pack that OMITS this flag suppresses them; see ContentPack.SuppressSubstances. -->
+<manifest name="Classic 2014" content_flags="substance">
 	<description>The original 2014 game, untouched. 14 days to find a job and an apartment.</description>
 </manifest>

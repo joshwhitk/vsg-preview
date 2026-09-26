@@ -1,0 +1,394 @@
+<xml>
+	<player>
+		<options>
+			<join>Join</join>
+			<decline>Decline</decline>
+		</options>
+		<response>
+			<join>
+				<dialog>
+					<phrase>I'm in!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good.</phrase>
+				</dialog>
+			</join>
+			<decline>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Nah, I'm out.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</player>
+	<default>
+		<join>
+			<dialog>
+				<phrase>Sounds great!</phrase>
+			</dialog>
+		</join>
+		<decline>
+			<dialog>
+				<phrase>I don't want to.</phrase>
+			</dialog>
+		</decline>
+		<park>
+			<dialog>
+				<phrase>Let's meet up at the park!</phrase>
+			</dialog>
+			<dialog>
+				<phrase>Okay I'll find you at the park!</phrase>
+			</dialog>
+			<dialog>
+				<phrase>See you in the park!</phrase>
+			</dialog>
+		</park>
+		<leave>
+			<dialog>
+				<phrase>Okay, I'm gonna go.</phrase>
+			</dialog>
+			<dialog>
+				<phrase>Fine, I'm taking off.</phrase>
+			</dialog>
+			<dialog>
+				<phrase>Alright, maybe another time.</phrase>
+			</dialog>
+		</leave>
+	</default>
+	<conversation>
+		<dialog>
+			<phrase>Hey, how is your day?</phrase>
+		</dialog>
+		<dialog>
+			<phrase>Anything new happening?</phrase>
+		</dialog>
+		<dialog>
+			<phrase>Lets just talk for a bit.</phrase>
+		</dialog>
+	</conversation>
+	<alcohol>
+		<suggest>
+			<grouphome>
+				<dialog>
+					<phrase>Let's go cause some trouble in the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Let's skip work or whatever in the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone up for slacking off in the park?</phrase>
+				</dialog>
+			</grouphome>
+			<default>
+				<dialog>
+					<phrase>Hey, let's go mess around!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>We should go cause some trouble.</phrase>
+					<phrase>Let's go raise hell!</phrase>
+				</dialog>
+			</default>
+		</suggest>
+		<response>
+			<join>
+				<dialog>
+					<phrase>All right!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good to me!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sure, I'm in.</phrase>
+				</dialog>
+			</join>
+			<party>
+				<dialog>
+					<phrase>I normally wouldn't...</phrase>
+					<phrase>But I guess its a party!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I don't usually cause trouble.</phrase>
+					<phrase>But its a party so count me in!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Ya, I guess why not!</phrase>
+				</dialog>
+			</party>
+			<decline>
+				<dialog>
+					<phrase>Eh, I'm not into it.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>No, I'd rather not.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</alcohol>
+	<high>
+		<suggest>
+			<grouphome>
+				<dialog>
+					<phrase>Let's go waste some time in the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Let's go goof off in the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone up for ditching responsibilities in the park?</phrase>
+				</dialog>
+			</grouphome>
+			<default>
+				<dialog>
+					<phrase>Hey, let's go slack off!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>We should be smoking.</phrase>
+					<phrase>Let's go waste the day!</phrase>
+				</dialog>
+			</default>
+		</suggest>
+		<response>
+			<join>
+				<dialog>
+					<phrase>All right!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good to me!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sure, I'm in.</phrase>
+				</dialog>
+			</join>
+			<party>
+				<dialog>
+					<phrase>I normally wouldn't...</phrase>
+					<phrase>But I guess its a party!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I don't usually goof off.</phrase>
+					<phrase>But its a party so count me in!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Ya, I guess why not!</phrase>
+				</dialog>
+			</party>
+			<decline>
+				<dialog>
+					<phrase>Eh, I'm not into it.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>No, I'd rather not.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</high>
+	<dance>
+		<suggest>
+			<dialog>
+				<phrase>Wait until you here this groove!</phrase>
+			</dialog>
+			<dialog>
+				<phrase>Check out this beat!</phrase>
+			</dialog>
+		</suggest>
+		<response>
+			<dialog>
+				<phrase>Okay lets here it.</phrase>
+			</dialog>
+			<dialog>
+				<phrase>What you got?</phrase>
+			</dialog>
+			<dialog>
+				<phrase>Ya put on some music.</phrase>
+			</dialog>
+		</response>
+	</dance>
+	<jog>
+		<suggest>
+			<default>
+				<dialog>
+					<phrase>Hey, let's jog at the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to go for a jog at the park?</phrase>
+				</dialog>
+			</default>
+			<park>
+				<dialog>
+					<phrase>Hey, let's take a jog!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to go for a jog?</phrase>
+				</dialog>
+			</park>
+		</suggest>
+		<response>
+			<join>
+				<dialog>
+					<phrase>I love jogging!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good to me!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sure, I'm in.</phrase>
+				</dialog>
+			</join>
+			<tomorrow>
+				<dialog>
+					<phrase>I already got my fitness in today.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm sore from today, but maybe tomorrow.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I already got my cardio for the day.</phrase>
+				</dialog>
+			</tomorrow>
+			<decline>
+				<dialog>
+					<phrase>Eh, I'm not into it.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>No, I'd rather not.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Cardio is not for me.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</jog>
+	<skate>
+		<suggest>
+			<default>
+				<dialog>
+					<phrase>Hey, let's skate at the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to go skate at the park?</phrase>
+				</dialog>
+			</default>
+			<park>
+				<dialog>
+					<phrase>Hey, let's skate!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to skate?</phrase>
+				</dialog>
+			</park>
+		</suggest>
+		<response>
+			<join>
+				<dialog>
+					<phrase>I love skating!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good to me!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sure, I'm in.</phrase>
+				</dialog>
+			</join>
+			<tomorrow>
+				<dialog>
+					<phrase>I already got my fitness in today.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm sore from today, but maybe tomorrow.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I already got my cardio for the day.</phrase>
+				</dialog>
+			</tomorrow>
+			<decline>
+				<dialog>
+					<phrase>I can't afford a skateboard.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I wish I had a skateboard.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Eh, I'm not into it.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>No, I'd rather not.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</skate>
+	<bike>
+		<suggest>
+			<default>
+				<dialog>
+					<phrase>Hey, let's bike at the park!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to go bike at the park?</phrase>
+				</dialog>
+			</default>
+			<park>
+				<dialog>
+					<phrase>Hey, let's bike!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Anyone want to bike?</phrase>
+				</dialog>
+			</park>
+		</suggest>
+		<response>
+			<join>
+				<dialog>
+					<phrase>I like biking!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sounds good to me!</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Sure, I'm in.</phrase>
+				</dialog>
+			</join>
+			<tomorrow>
+				<dialog>
+					<phrase>I already got my fitness in today.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm sore from today, but maybe tomorrow.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I already got my cardio for the day.</phrase>
+				</dialog>
+			</tomorrow>
+			<decline>
+				<dialog>
+					<phrase>I can't afford a bike.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I wish I had a bike.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>Eh, I'm not into it.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>I'm gonna pass.</phrase>
+				</dialog>
+				<dialog>
+					<phrase>No, I'd rather not.</phrase>
+				</dialog>
+			</decline>
+		</response>
+	</bike>
+</xml>

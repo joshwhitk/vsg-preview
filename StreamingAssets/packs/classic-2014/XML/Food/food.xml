@@ -1,0 +1,39 @@
+<food>
+	<!-- Food system v1 data (2026-06-13).
+	     All prices in CENTS. Calories are approximate energy-hours * 100.
+	     Health: 0-100 (100 = healthiest). Tier: vending/restaurant/homecooked/grouphome.
+	     Pack-tunable: override this file in a content pack to adjust difficulty. -->
+
+	<!-- VENDING MACHINE items: highest $/cal, very low health (score 20-35) -->
+	<vending>
+		<item name="Granola Bar"       price="150" calories="120" health="35" />
+		<item name="Chips"             price="125" calories="150" health="20" />
+		<item name="Candy Bar"         price="100" calories="200" health="15" />
+		<item name="Soda"              price="125" calories="80"  health="10" />
+	</vending>
+
+	<!-- RESTAURANT items (CornerStore counter, breakroom): medium $/cal, low-med health -->
+	<restaurant>
+		<item name="Hamburger and Fries"     price="550" calories="600" health="40" />
+		<item name="Club Sandwich"           price="650" calories="500" health="55" />
+		<item name="Vegetarian Nachos"       price="600" calories="450" health="50" />
+		<item name="Tuna Sandwich and Fruit" price="700" calories="480" health="65" />
+	</restaurant>
+
+	<!-- GROCERY BUNDLES (CornerStore shelf): buy once, stocks apartment fridge for N meals -->
+	<grocery>
+		<item name="Basics Bundle"    price="1200" calories="2000" health="65" meals="3" />
+		<item name="Healthy Week"     price="2200" calories="4000" health="75" meals="6" />
+		<item name="Quick Meals Pack" price="1500" calories="2500" health="55" meals="4" />
+	</grocery>
+
+	<!-- Hunger thresholds and energy settings (also overridable per pack) -->
+	<settings
+		max_energy="100"
+		drain_per_game_hour="4"
+		moderate_threshold="50"
+		severe_threshold="20"
+		minigame_speed_scalar_moderate="0.80"
+		grouphome_fridge_energy="80"
+	/>
+</food>

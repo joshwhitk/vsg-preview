@@ -1,0 +1,32 @@
+<!-- "ESRB Everyone" edition (2026-06-26): a standalone drug- and alcohol-free
+     version of VSG. No mention of drugs/alcohol by peers, bosses, or the player,
+     and none of the substance mechanics. The job DRUG TEST is kept (a real
+     workplace lesson) but the player always passes it, because nothing in this
+     pack can ever raise the player's Cannabinoids (DrugTestLogic passes when < 30).
+
+     Substance handling uses the SINGLE FPC `substance` content flag, enforced here
+     for the first time: substances appear only when an active pack DECLARES
+     content_flags="substance" (or no pack is active = base game). This pack simply
+     OMITS the flag, so ContentPack.SuppressSubstances is true and the game hides
+     all substance content. That is the whole switch; there is no separate
+     "no_substance" flag.
+
+     From data alone (no recompile): characters.xml forces every NPC
+     alcoholic="false" stoner="false" (absent = 50% random in CharacterManager, so
+     it MUST be explicit); jobs.xml zeroes every boss chance_drunk/chance_high (incl.
+     replacements) and keeps drug_test="true". With traits + boss-states neutralized
+     and the substance flag off, every substance EVENT (drinking/smoking convergences,
+     hidden-substance, party beer/weed) goes dormant. Three code gates on
+     ContentPack.SuppressSubstances remove the only non-data-driven bits (the player's
+     Suggest-Weed/Alcohol menu, the apartment No-Drugs/No-Smoking policy text, and the
+     "came in drunk/high" memory lines).
+
+     NOTE: this removes the SUBSTANCE axis of an ESRB Everyone rating; the VIOLENCE
+     axis (fights / goons / bikers) is separate and unaddressed here. -->
+<manifest name="ESRB Everyone">
+	<description>A drug- and alcohol-free version. No substance use or talk by anyone; the job still drug-tests you, and you always pass.</description>
+	<!-- Standalone product: keep a SEPARATE save/replay database from the base /play
+	     game (per-user save lives under everyone/users/<id>/), matching the separate
+	     /everyone account namespace. See ContentPack.saveScope + AccountManager. -->
+	<tuning save_scope="everyone"/>
+</manifest>

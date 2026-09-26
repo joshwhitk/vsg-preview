@@ -1,0 +1,7 @@
+<settings>
+	<startTime day="6" hour="8" minute="00" /> <!-- starting time of the game : sun=0 mon=1 ect-->
+	<alarmTime hour="7" minute="0" /> <!--- default alarm time -->
+	<dayLimits grouphome="14" apartment="7" notice="3"/> <!-- how many days player has until gameover -->
+	<moneyBleed amount="1.00" frequency="60" />
+	<clockSpeed multiplier="20" /> <!-- game-seconds per real second (day/night clock). Pack can override via tuning time_multiplier. -->
+</settings>

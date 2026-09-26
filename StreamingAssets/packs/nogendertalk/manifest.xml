@@ -1,0 +1,4 @@
+<manifest name="No Gender Talk" content_flags="substance">
+  <description>Test/diagnostic pack: removes the gender-affirming dialog lines (the #37 gender_affirming knob = "remove"). Substances are NOT suppressed (substance flag kept) so the toggle is isolated.</description>
+  <tuning gender_affirming="remove"/>
+</manifest>

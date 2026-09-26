@@ -1,0 +1,20 @@
+<!--
+	living_cost = rent + living_cost < income = approved with income concern
+	roomate_search = weeks to find a roomate
+
+	rent_frequency: 1 = DAILY rent (live default; the test suite depends on it).
+	Weekly-rhythm variant (opt-in, see Settings/settings_weekly.xml):
+	rent_frequency="7" rent_suffix="/wk" with rents multiplied x7.
+-->
+<apartments rent_frequency="1" rent_suffix="/d" living_cost="400" roomate_search="6" open="8" close="20">	
+	<apartment id="1" name="Winking Roach" quality="1" rent="15" deposit="50"/>
+	<apartment id="2" name="Still Water" quality="2" rent="20" deposit="100"/>
+	<apartment id="3" name="Courtyard" quality="3" rent="25" deposit="200"/>
+	<apartment id="4" name="Crossings" quality="4" rent="30" deposit="400"/>
+	<apartment id="5" name="Stone Ridge" quality="5" rent="40" deposit="450"/>
+	<apartment id="6" name="The Ponds" quality="6" rent="50" deposit="500"/>
+	<apartment id="7" name="The Den" quality="7" rent="60" deposit="550"/>
+	<apartment id="8" name="Broadway" quality="8" rent="70" deposit="600"/>
+	<apartment id="9" name="Boulder" quality="9" rent="80" deposit="650"/>
+	<apartment id="10" name="Evergreen" quality="10" rent="90" deposit="700"/>
+</apartments>

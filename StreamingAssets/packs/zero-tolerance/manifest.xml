@@ -1,0 +1,4 @@
+<manifest name="Zero Tolerance" content_flags="substance">
+  <description>Test/diagnostic pack for the #28 zero-tolerance knob: every boss fires on the first mistake (no allowed mistakes, no warnings). Substances kept so the knob is isolated.</description>
+  <tuning zero_tolerance="1"/>
+</manifest>

@@ -1,1 +1,5 @@
-
+XML/Apartments/apartments.xml
+XML/Food/food.xml
+XML/Settings/characters.xml
+XML/Settings/jobs.xml
+XML/Settings/settings.xml

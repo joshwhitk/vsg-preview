@@ -1,0 +1,4 @@
+<manifest name="Rent +25%" content_flags="substance">
+  <description>Test/diagnostic pack for the #28 rent knob: rent + deposits at 125% (+25%). Substances kept so the knob is isolated.</description>
+  <tuning rent_multiplier="125"/>
+</manifest>

@@ -1,0 +1,18 @@
+<!-- No-Substance override: every character explicitly alcoholic="false" stoner="false".
+     (CharacterManager randomly sets these ~50% true when the attribute is ABSENT,
+     so they MUST be explicit here.) reliable/dirty/gender kept for variety. -->
+<characters>
+	<grouphome>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="male"/>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="female"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="false"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="false"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="true"/>
+	</grouphome>
+	<coworkers>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="male"/>
+		<character reliable="true" alcoholic="false" stoner="false" dirty="false" gender="female"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="false"/>
+		<character reliable="false" alcoholic="false" stoner="false" dirty="false"/>
+	</coworkers>
+</characters>

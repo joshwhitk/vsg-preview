@@ -1,0 +1,4 @@
+<manifest name="Roommate Hard" content_flags="substance">
+  <description>Test/diagnostic pack for the #28 roommate knob: a friend needs disposition 95 (vs 80) before agreeing to room with you. Substances kept so the knob is isolated.</description>
+  <tuning roommate_min_disposition="95"/>
+</manifest>
