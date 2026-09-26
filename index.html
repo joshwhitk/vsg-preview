@@ -7,7 +7,7 @@
 <style>
   html, body { margin:0; padding:0; background:#000; height:100%; overflow:hidden; }
   #unity-container { position:fixed; inset:0; }
-  #unity-canvas { width:100%; height:100%; display:block; background:#000; }
+  #unity-canvas { width:100%; height:100%; display:block; background:#000; touch-action:none; outline:none; }
   #loading { position:fixed; inset:0; background:#000; color:#cfe3ee; z-index:5;
              font-family:Georgia,serif; text-align:center; padding-top:38vh; }
   #loading h1 { font-size:1.4em; letter-spacing:.08em; margin:0 0 .5em; }
@@ -19,20 +19,29 @@
   #rotate-overlay .phone { font-size:2.2em; display:block; margin-bottom:.4em;
                            animation:tip 1.6s ease-in-out infinite; }
   @keyframes tip { 0%,100% { transform:rotate(0deg); } 50% { transform:rotate(90deg); } }
-  @media (orientation: portrait) { #rotate-overlay { display:block; } }
+  /* A narrow desktop window is still playable. Only touch-first devices
+     need the rotate prompt; portrait alone does not identify a phone. */
+  @media (orientation: portrait) {
+    #unity-container { top:50%; bottom:auto; height:56.25vw; transform:translateY(-50%); }
+  }
+  @media (orientation: portrait) and (hover: none) and (pointer: coarse) {
+    #rotate-overlay { display:block; }
+  }
 </style>
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"></head>
 <body>
-  <div id="unity-container"><canvas id="unity-canvas" tabindex="-1"></canvas></div>
+  <div id="unity-container"><canvas id="unity-canvas" tabindex="0" aria-label="Surviving Independence game. Use touch or mouse; Enter advances dialogs."></canvas></div>
   <div id="loading">
     <h1>SURVIVING&nbsp;INDEPENDENCE</h1>
-    <small>friends &amp; family preview &middot; loading&hellip;</small>
+    <small>touch &amp; mouse preview &middot; loading&hellip;</small>
     <div id="bar"><div id="fill"></div></div>
   </div>
   <div id="rotate-overlay"><span class="phone">&#128241;</span>Please rotate your phone sideways</div>
   <script src="Build/build-webgl.loader.js"></script>
   <script>
-    createUnityInstance(document.querySelector("#unity-canvas"), {
+    var canvas = document.querySelector("#unity-canvas");
+    canvas.addEventListener("pointerdown", function () { canvas.focus({preventScroll:true}); });
+    createUnityInstance(canvas, {
       arguments: [],
       dataUrl: "Build/build-webgl.data.unityweb",
       frameworkUrl: "Build/build-webgl.framework.js.unityweb",
