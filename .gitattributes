@@ -1,0 +1,4 @@
+# Preserve Unity export bytes so published artifact hashes remain exact.
+/Build/** -text
+/StreamingAssets/** -text
+/index.html -text
